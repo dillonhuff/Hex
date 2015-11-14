@@ -1,4 +1,6 @@
-module Boolean(boolDT, trueTerm) where
+module Boolean(boolDT,
+               boolType,
+               trueTerm) where
 
 import Proof
 
@@ -10,3 +12,4 @@ trueTerm = ap trueGlobal []
 
 trueGlobal = dGbl "T" boolType []
 falseGlobal = dGbl "F" boolType []
+

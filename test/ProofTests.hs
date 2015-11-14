@@ -7,17 +7,25 @@ import Proof
 import TestUtils
 
 allProofTests =
-  TestList [testThm trueIsTrue]
+  TestList [testThm trueIsTrue True,
+            testThm trueFuncIsTrue True]
 
 trueIsTrue = conjecture [boolDT] [] trueTerm
 
-testThm thm = TestCase $ tf thm
+trueFuncIsTrue = conjecture [boolDT] [trueFunc] trueFuncCall
 
-tf thm = do
+trueFunc = function (dId "trueFunc") [] [] boolType trueTerm
+
+trueFuncCall = ap (dGbl "trueFunc" (func [] boolType) []) []
+
+testThm thm expected = TestCase $ tf thm expected
+
+tf thm expected = do
   let p = someProof $ tryToProve thm in
-   assertBool (caseFailMsg thm p) p
+   assertBool (caseFailMsg thm p expected) (p == expected)
 
-caseFailMsg thm p = "Input: " ++ show thm ++ "\nResult: " ++ show p
+caseFailMsg thm p expected =
+  "Input: " ++ show thm ++ "\nResult: " ++ show p
 
 someProof res =
   case res of

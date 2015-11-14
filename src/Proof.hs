@@ -1,9 +1,10 @@
 module Proof(conjecture,
              tryToProve,
+             function,
              ap,
              dataCon,
              datatype,
-             tyCon,
+             tyCon, func,
              dId,
              dGbl) where
 
@@ -50,6 +51,8 @@ data Function =
     funcBody :: Term
     } deriving (Eq, Ord, Show)
 
+function = Function
+
 data Datatype =
   Datatype {
     dtName :: Id,
@@ -81,10 +84,11 @@ data Alt = Alt { casePat :: Pat, caseRHS :: Term }
 data Pat = Default | ConPat { patCon :: Global, patArgs :: [Local] }
          deriving (Eq, Ord, Show)
 
-data Type = TyVar Id | TyCon Id [Type]
+data Type = TyVar Id | TyCon Id [Type] | Func [Type] Type
           deriving (Eq, Ord, Show)
 
 tyCon = TyCon
+func = Func
 
 data Global =
   Global { gblName :: Id, gblType :: Type, gblArgs :: [Type] }
