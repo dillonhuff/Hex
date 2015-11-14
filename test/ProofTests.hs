@@ -2,20 +2,22 @@ module ProofTests(allProofTests) where
 
 import Test.HUnit
 
+import Boolean
 import Proof
 import TestUtils
 
 allProofTests =
-  TestList [testFile "bool_t"]
+  TestList [testThm trueIsTrue]
 
-testFile n = TestCase $ tf n
+trueIsTrue = conjecture [boolDT] [] trueTerm
 
-tf n = do
-  res <- proveFile (caseFile n)
-  let p = someProof res in
-   assertBool (caseFailMsg n p) p
+testThm thm = TestCase $ tf thm
 
-caseFailMsg n p = "Input: " ++ n ++ "\nResult: " ++ show p
+tf thm = do
+  let p = someProof $ tryToProve thm in
+   assertBool (caseFailMsg thm p) p
+
+caseFailMsg thm p = "Input: " ++ show thm ++ "\nResult: " ++ show p
 
 someProof res =
   case res of
