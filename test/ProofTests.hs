@@ -12,9 +12,10 @@ testFile n = TestCase $ tf n
 
 tf n = do
   res <- proveFile (caseFile n)
-  assertBool (caseFailMsg n) (someProof res)
+  let p = someProof res in
+   assertBool (caseFailMsg n p) p
 
-caseFailMsg n = n
+caseFailMsg n p = "Input: " ++ n ++ "\nResult: " ++ show p
 
 someProof res =
   case res of

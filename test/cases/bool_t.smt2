@@ -1,2 +1,3 @@
-(declare-datatypes () ((Bool (T) (F))))
+(declare-datatypes () ((Boolean (T) (F))))
 (assert T)
+(check-sat)
