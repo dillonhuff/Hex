@@ -1,109 +1,81 @@
-module Proof(conjecture,
-             tryToProve,
-             function,
-             ap,
-             dataCon,
-             datatype,
-             tyCon, func,
-             dId,
-             dGbl) where
+module Proof(tryToProve) where
 
 import Data.List as L
+import Data.Maybe
+
+import Core
+
+data Proof
+  = TrueProof Conjecture
+  | UnfoldProof Conjecture Proof
+    deriving (Eq, Ord, Show)
+
+trueProof = TrueProof
+unfoldProof = UnfoldProof
 
 tryToProve :: Conjecture -> Maybe Proof
-tryToProve c = tryToProve' eqTerm c
+tryToProve c = tryToProve' selectAction c
 
-tryToProve' :: (Conjecture -> Maybe Proof) -> Conjecture -> Maybe Proof
-tryToProve' f c = f c
+tryToProve' :: (Conjecture -> Maybe Action) -> Conjecture -> Maybe Proof
+tryToProve' s c =
+  case s c of
+   Just a -> applyAction s a c
+   Nothing -> Nothing
 
-eqTerm t =
-  case conjAssert t of
-   gbl Proof.:@: [] -> if sameName gbl trueGbl then Just Proof else Nothing
-   _ -> Nothing
+applyAction s a c =
+  case (acApplies a) c of
+   True ->
+     let subgoals = (acGenSubgoals a) c
+         results = catMaybes $ L.map (tryToProve' s) subgoals in
+      case allProved subgoals results of
+       True -> Just $ (acGenProof a) c results
+       False -> Nothing
 
-sameName (Global id1 _ _) (Global id2 _ _) = (idName id1) == (idName id2)
+allProved subgoals results =
+  L.length subgoals == L.length results
 
-trueGbl = Global trueId boolType []
+selectAction c = selectAction' c actions
 
-trueId = dId "T"
+selectAction' _ [] = Nothing
+selectAction' c (a:as) =
+  case (acApplies a) c of
+   True -> Just a
+   False -> selectAction' c as
 
-boolPolyType = error "boolPolyType"
+actions = [eqAction,
+           simpleUnfoldAction]
 
-boolType = error "boolType" []
+data Action
+  = Action {
+    acApplies :: Conjecture -> Bool,
+    acGenSubgoals :: Conjecture -> [Conjecture],
+    acGenProof :: Conjecture -> [Proof] -> Proof
+    }
 
-data Conjecture =
-  Conjecture {
-    conjDataTypes :: [Datatype],
-    conjFunctions :: [Function],
-    conjAssert :: Term
-    } deriving (Eq, Ord, Show)
+eqAction = Action eqTerm (\_ -> []) (\c _ -> trueProof c)
 
-conjecture = Conjecture
+simpleUnfoldAction =
+  Action existsNoArgFunc substituteFirstNoArgFunc simpleUnfoldProof
 
-data Proof = Proof
-  
-data Function =
-  Function {
-    funcName :: Id,
-    funcTVS :: [Id],
-    funcArgs :: [Local],
-    funcRes :: Type,
-    funcBody :: Term
-    } deriving (Eq, Ord, Show)
+existsNoArgFunc c =
+  case firstNoArgFunc $ conjFunctions c of
+   Just f -> True
+   Nothing -> False
 
-function = Function
+substituteFirstNoArgFunc c =
+  case firstNoArgFunc $ conjFunctions c of
+   Just f ->
+      [c {conjFunctions = L.delete f $ conjFunctions c,
+          conjAssert = replaceFuncWithBody f $ conjAssert c}]
+   Nothing -> [c]
+   
+simpleUnfoldProof c [subProof] = unfoldProof c subProof
 
-data Datatype =
-  Datatype {
-    dtName :: Id,
-    dtTVS :: [Id],
-    dtConstructors :: [DataCon]
-    } deriving (Eq, Ord, Show)
+replaceFuncWithBody f =
+  let fName = funcName f
+      fBody = funcBody f in
+   genSub (sameFunc fName) (replaceFunc fBody)
 
-datatype = Datatype
-
-data DataCon =
-  DataCon {
-    dcName :: Global,
-    dcArgs :: [Type]
-    } deriving (Eq, Ord, Show)
-
-dataCon = DataCon
-
-data Term =
-  Lcl Local |
-  Global :@: [Term] |
-  Match Term [Alt]
-  deriving (Eq, Ord, Show)
-
-ap g args = g :@: args
-
-data Alt = Alt { casePat :: Pat, caseRHS :: Term }
-             deriving (Eq, Ord, Show)
-  
-data Pat = Default | ConPat { patCon :: Global, patArgs :: [Local] }
-         deriving (Eq, Ord, Show)
-
-data Type = TyVar Id | TyCon Id [Type] | Func [Type] Type
-          deriving (Eq, Ord, Show)
-
-tyCon = TyCon
-func = Func
-
-data Global =
-  Global { gblName :: Id, gblType :: Type, gblArgs :: [Type] }
-  deriving (Eq, Ord, Show)
-
-global = Global
-
-dGbl n tp args = global (dId n) tp args
-
-data Local =
-  Local { lclName :: Id, lclType :: Type }
-  deriving (Eq, Ord, Show)
-
-data Id =
-  Id { idName :: String, idFile :: String, idPos :: (Int, Int) }
-  deriving (Eq, Ord, Show)
-
-dId n = Id n "NO_FILE" (-1, -1)
+firstNoArgFunc [] = Nothing
+firstNoArgFunc (f:fs) =
+  if funcArgs f == [] then Just f else firstNoArgFunc fs

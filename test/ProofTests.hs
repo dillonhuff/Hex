@@ -3,20 +3,29 @@ module ProofTests(allProofTests) where
 import Test.HUnit
 
 import Boolean
+import Core
 import Proof
 import TestUtils
 
 allProofTests =
   TestList [testThm trueIsTrue True,
-            testThm trueFuncIsTrue True]
+            testThm trueFuncIsTrue True,
+            testThm falseIsTrue False,
+            testThm falseFuncIsTrue False]
 
 trueIsTrue = conjecture [boolDT] [] trueTerm
 
-trueFuncIsTrue = conjecture [boolDT] [trueFunc] trueFuncCall
+trueFuncIsTrue = conjecture [boolDT] [trueFunc] trueFuncall
+
+falseIsTrue = conjecture [boolDT] [] falseTerm
+
+falseFuncIsTrue = conjecture [boolDT] [falseFunc] falseFuncall
 
 trueFunc = function (dId "trueFunc") [] [] boolType trueTerm
+falseFunc = function (dId "falseFunc") [] [] boolType falseTerm
 
-trueFuncCall = ap (dGbl "trueFunc" (func [] boolType) []) []
+trueFuncall = ap (dGbl "trueFunc" (func [] boolType) []) []
+falseFuncall = ap (dGbl "falseFunc" (func [] boolType) []) []
 
 testThm thm expected = TestCase $ tf thm expected
 
