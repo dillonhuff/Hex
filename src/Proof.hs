@@ -8,10 +8,12 @@ import Core
 data Proof
   = TrueProof Conjecture
   | UnfoldProof Conjecture Proof
+  | SelectProof Conjecture Proof
     deriving (Eq, Ord, Show)
 
 trueProof = TrueProof
 unfoldProof = UnfoldProof
+selectProof = SelectProof
 
 tryToProve :: Conjecture -> Maybe Proof
 tryToProve c = tryToProve' selectAction c
@@ -43,7 +45,8 @@ selectAction' c (a:as) =
    False -> selectAction' c as
 
 actions = [eqAction,
-           unfoldAction]
+           unfoldAction,
+           selectMatchAction]
 
 data Action
   = Action {
@@ -52,10 +55,17 @@ data Action
     acGenProof :: Conjecture -> [Proof] -> Proof
     }
 
-eqAction = Action eqTerm (\_ -> []) (\c _ -> trueProof c)
+eqAction =
+  Action eqTerm (\_ -> []) (\c _ -> trueProof c)
 
 unfoldAction =
   Action existsFunc substituteFunc simpleUnfoldProof
+
+selectMatchAction =
+  Action existsDataConMatch substituteDataConMatches simpleSelectProof
+
+existsDataConMatch = error "existsDataConMatch"
+substituteDataConMatches = error "substituteDataConMatches"
 
 existsFunc c =
   case conjFunctions c of
@@ -70,6 +80,7 @@ substituteFunc c =
    _ -> [c]
    
 simpleUnfoldProof c [subProof] = unfoldProof c subProof
+simpleSelectProof c [subProof] = selectProof c subProof
 
 replaceFuncWithBody f =
   let fName = funcName f
