@@ -6,6 +6,7 @@ module Core(Conjecture,
             funcBody, funcName, funcArgs,
             genSub, sameFunc, replaceFunc,
             lcl, ap, match,
+            existsTerm, isDataConMatch, selectMatch,
             alt,
             conPat,
             dataCon,
@@ -94,12 +95,41 @@ lcl = Lcl
 ap g args = g :@: args
 match = Match
 
+callHead (g :@: _) = g
+callArgs (_ :@: ts) = ts
+
+existsTerm :: (Term -> Bool) -> Term -> Bool
+existsTerm f t@(g :@: ts) =
+  if f t then True else L.or $ L.map (existsTerm f) ts
+existsTerm f t@(Match e alts) =
+  let altsEx = L.or $ (f e):(L.map (\a -> existsTerm f $ caseRHS a) alts) in
+   f t || altsEx
+existsTerm f t = f t
+
+isDataConMatch c (Match t _) = isDataCon c t
+isDataConMatch _ _ = False
+
+isDataCon c (g :@: _) =
+  let dataCons = L.concatMap dtConstructors $ conjDataTypes c in
+   L.elem g $ L.map dcName dataCons
+isDataCon _ _ = False
+
+selectMatch (Match t alts) =
+  let dc = callHead t
+      args = callArgs t
+      alt = L.head $ L.filter (\a -> (patCon $ casePat a) == dc) alts
+      pat = casePat alt
+      fps = patArgs pat
+      rhs = caseRHS alt
+      subPairs = L.zip fps args in
+   L.foldr replaceParam rhs $ subPairs
+  
 sameFunc f (g :@: _) = f == (gblName g)
 
 replaceFunc body formalParams (_ :@: args) =
   L.foldr replaceParam body $ L.zip formalParams args
-  where
-    replaceParam = \(fp, e) b -> genSub (localWithName fp) (\t -> e) b
+
+replaceParam = \(fp, e) b -> genSub (localWithName fp) (\t -> e) b
 
 localWithName n (Lcl l) = n == l
 localWithName _ _ = False
@@ -121,7 +151,7 @@ instance Pretty Alt where
 
 alt = Alt
 
-data Pat = Default | ConPat { patCon :: Global, patArgs :: [Local] }
+data Pat = ConPat { patCon :: Global, patArgs :: [Local] }
          deriving (Eq, Ord, Show)
 
 instance Pretty Pat where

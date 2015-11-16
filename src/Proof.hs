@@ -64,8 +64,9 @@ unfoldAction =
 selectMatchAction =
   Action existsDataConMatch substituteDataConMatches simpleSelectProof
 
-existsDataConMatch = error "existsDataConMatch"
-substituteDataConMatches = error "substituteDataConMatches"
+existsDataConMatch c = existsTerm (isDataConMatch c) $ conjAssert c
+substituteDataConMatches c =
+  [c {conjAssert = genSub (isDataConMatch c) selectMatch $ conjAssert c}]
 
 existsFunc c =
   case conjFunctions c of
