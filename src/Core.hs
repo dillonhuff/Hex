@@ -96,16 +96,28 @@ match = Match
 
 sameFunc f (g :@: _) = f == (gblName g)
 
-replaceFunc t (_ :@: _) = t
+replaceFunc body formalParams (_ :@: args) =
+  L.foldr replaceParam body $ L.zip formalParams args
+  where
+    replaceParam = \(fp, e) b -> genSub (localWithName fp) (\t -> e) b
 
-genSub :: (Term -> Bool) -> (Term -> Term) -> Term -> Term
-genSub test replace t = if test t then replace t else t
+localWithName n (Lcl l) = n == l
+localWithName _ _ = False
+
+genSub test replace t@(g :@: ts) =
+  if test t then genSub' test replace t else g :@: (L.map (genSub test replace) ts)
+genSub test replace t@(Match e alts) =
+  if test t then genSub' test replace t else match (genSub test replace e) $ L.map (\a -> a { caseRHS = genSub test replace $ caseRHS a}) alts
+genSub test replace t = genSub' test replace t
+
+genSub' :: (Term -> Bool) -> (Term -> Term) -> Term -> Term
+genSub' test replace t = if test t then replace t else t
 
 data Alt = Alt { casePat :: Pat, caseRHS :: Term }
              deriving (Eq, Ord, Show)
 
 instance Pretty Alt where
-  pretty n (Alt p t) = indent n $ ps $ pretty n p ++ (pretty (n+1) t)
+  pretty n (Alt p t) = indent n $ ps $ pretty n p ++ " " ++ (pretty (n+1) t)
 
 alt = Alt
 

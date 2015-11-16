@@ -1,4 +1,4 @@
-module Proof(tryToProve) where
+module Proof(tryToProve, substituteFunc) where
 
 import Data.List as L
 import Data.Maybe
@@ -43,7 +43,7 @@ selectAction' c (a:as) =
    False -> selectAction' c as
 
 actions = [eqAction,
-           simpleUnfoldAction]
+           unfoldAction]
 
 data Action
   = Action {
@@ -54,27 +54,28 @@ data Action
 
 eqAction = Action eqTerm (\_ -> []) (\c _ -> trueProof c)
 
-simpleUnfoldAction =
-  Action existsNoArgFunc substituteFirstNoArgFunc simpleUnfoldProof
+unfoldAction =
+  Action existsFunc substituteFunc simpleUnfoldProof
 
-existsNoArgFunc c =
-  case firstNoArgFunc $ conjFunctions c of
-   Just f -> True
-   Nothing -> False
+existsFunc c =
+  case conjFunctions c of
+   [] -> False
+   _ -> True
 
-substituteFirstNoArgFunc c =
-  case firstNoArgFunc $ conjFunctions c of
-   Just f ->
+substituteFunc c =
+  case conjFunctions c of
+   (f:fs) ->
       [c {conjFunctions = L.delete f $ conjFunctions c,
           conjAssert = replaceFuncWithBody f $ conjAssert c}]
-   Nothing -> [c]
+   _ -> [c]
    
 simpleUnfoldProof c [subProof] = unfoldProof c subProof
 
 replaceFuncWithBody f =
   let fName = funcName f
-      fBody = funcBody f in
-   genSub (sameFunc fName) (replaceFunc fBody)
+      fBody = funcBody f
+      fArgs = funcArgs f in
+   genSub (sameFunc fName) (replaceFunc fBody fArgs)
 
 firstNoArgFunc [] = Nothing
 firstNoArgFunc (f:fs) =

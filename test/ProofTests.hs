@@ -39,7 +39,7 @@ tf thm expected = do
    assertBool (caseFailMsg thm p expected) (p == expected)
 
 caseFailMsg thm p expected =
-  "Input: " ++ show thm ++ "\nResult: " ++ show p
+  "Input:\n" ++ pretty 0 thm ++ "\nResult: " ++ show p
 
 someProof res =
   case res of
