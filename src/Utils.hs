@@ -1,7 +1,12 @@
-module Utils(readTipFile) where
+module Utils(Pretty(..), ps, spaces) where
 
-import Tip.HaskellFrontend
+import Data.List as L
 
-path = "/Users/dillon/Haskell/ThmProving/tip/benchmarks/benchmarks/tip2015/int_add_ident_left.smt2"
+class Pretty a where
+  pretty :: Int -> a -> String
 
-readTipFile f = readHaskellOrTipFile f defaultParams
+instance Pretty a => Pretty [a] where
+  pretty n as = L.concat $ L.intersperse "\n" $ L.map (pretty n) as
+  
+ps str = "(" ++ str ++ ")"
+spaces strs = L.concat $ L.intersperse " " strs

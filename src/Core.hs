@@ -15,12 +15,21 @@ module Core(Conjecture,
             global,
             sameName) where
 
+import Data.List as L
+
+import Utils
+
 data Conjecture =
   Conjecture {
     conjDataTypes :: [Datatype],
     conjFunctions :: [Function],
     conjAssert :: Term
     } deriving (Eq, Ord, Show)
+
+instance Pretty Conjecture where
+  pretty n c = (pretty n (conjDataTypes c)) ++ "\n" ++
+               (pretty n (conjFunctions c)) ++ "\n" ++
+               (pretty n (conjAssert c))
 
 conjecture = Conjecture
 
@@ -44,6 +53,9 @@ data Function =
 
 function = Function
 
+instance Pretty Function where
+  pretty n f = ps $ spaces $ ["define-fun", pretty 0 (funcName f), ps ""]
+  
 data Datatype =
   Datatype {
     dtName :: Id,
@@ -51,6 +63,9 @@ data Datatype =
     dtConstructors :: [DataCon]
     } deriving (Eq, Ord, Show)
 
+instance Pretty Datatype where
+  pretty n d = ps $ spaces $ ["declare-datatypes", ps "", ps $ ps $ pretty 0 $ dtName d]
+  
 datatype = Datatype
 
 data DataCon =
@@ -67,6 +82,9 @@ data Term =
   Match Term [Alt]
   deriving (Eq, Ord, Show)
 
+instance Pretty Term where
+  pretty n t = ""
+  
 ap g args = g :@: args
 
 sameFunc f (g :@: _) = f == (gblName g)
@@ -107,3 +125,6 @@ data Id =
   deriving (Eq, Ord, Show)
 
 dId n = Id n "NO_FILE" (-1, -1)
+
+instance Pretty Id where
+  pretty n id = idName id

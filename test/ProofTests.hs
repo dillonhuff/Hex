@@ -6,6 +6,7 @@ import Boolean
 import Core
 import Proof
 import TestUtils
+import Utils
 
 allProofTests =
   TestList [testThm trueIsTrue True,
