@@ -5,14 +5,16 @@ module Core(Conjecture,
             function,
             funcBody, funcName, funcArgs,
             genSub, sameFunc, replaceFunc,
-            ap,
+            lcl, ap, match,
+            alt,
+            conPat,
             dataCon,
             datatype,
             tyCon, func,
             dId,
             idName,
-            dGbl,
-            global,
+            local, dLcl,
+            global, dGbl,
             sameName) where
 
 import Data.List as L
@@ -54,7 +56,8 @@ data Function =
 function = Function
 
 instance Pretty Function where
-  pretty n f = ps $ spaces $ ["define-fun", pretty 0 (funcName f), ps ""]
+  pretty n f = ps $ (spaces ["define-fun", pretty 0 (funcName f), ps ""]) ++
+               (pretty (n+1) $ funcBody f)
   
 data Datatype =
   Datatype {
@@ -83,9 +86,13 @@ data Term =
   deriving (Eq, Ord, Show)
 
 instance Pretty Term where
-  pretty n t = ""
+  pretty n (Lcl l) = pretty 0 l
+  pretty n (g :@: terms) = ps $ pretty 0 g ++ " " ++ (spaces $ L.map (pretty 0) terms)
+  pretty n (Match e alts) = indent n $ ps $ "match " ++ pretty 0 e ++ (L.concatMap (pretty (n+1)) alts)
   
+lcl = Lcl
 ap g args = g :@: args
+match = Match
 
 sameFunc f (g :@: _) = f == (gblName g)
 
@@ -96,9 +103,19 @@ genSub test replace t = if test t then replace t else t
 
 data Alt = Alt { casePat :: Pat, caseRHS :: Term }
              deriving (Eq, Ord, Show)
-  
+
+instance Pretty Alt where
+  pretty n (Alt p t) = indent n $ ps $ pretty n p ++ (pretty (n+1) t)
+
+alt = Alt
+
 data Pat = Default | ConPat { patCon :: Global, patArgs :: [Local] }
          deriving (Eq, Ord, Show)
+
+instance Pretty Pat where
+  pretty n (ConPat g ls) = ps $ spaces $ [pretty n g] ++ (L.map (pretty n) ls)
+
+conPat = ConPat
 
 data Type = TyVar Id | TyCon Id [Type] | Func [Type] Type
           deriving (Eq, Ord, Show)
@@ -110,6 +127,9 @@ data Global =
   Global { gblName :: Id, gblType :: Type, gblArgs :: [Type] }
   deriving (Eq, Ord, Show)
 
+instance Pretty Global where
+  pretty n (Global name _ _) = pretty n name
+
 global = Global
 
 dGbl n tp args = global (dId n) tp args
@@ -119,6 +139,12 @@ sameName (Global id1 _ _) (Global id2 _ _) = (idName id1) == (idName id2)
 data Local =
   Local { lclName :: Id, lclType :: Type }
   deriving (Eq, Ord, Show)
+
+instance Pretty Local where
+  pretty n (Local name t) = pretty n name
+  
+local = Local
+dLcl n tp = local (dId n) tp
 
 data Id =
   Id { idName :: String, idFile :: String, idPos :: (Int, Int) }

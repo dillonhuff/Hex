@@ -1,4 +1,5 @@
-module Utils(Pretty(..), ps, spaces) where
+module Utils(Pretty(..),
+             ps, spaces, indent) where
 
 import Data.List as L
 
@@ -10,3 +11,4 @@ instance Pretty a => Pretty [a] where
   
 ps str = "(" ++ str ++ ")"
 spaces strs = L.concat $ L.intersperse " " strs
+indent n str = "\n" ++ (L.concat $ L.replicate n "  ") ++ str
