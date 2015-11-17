@@ -30,9 +30,9 @@ data Conjecture =
     } deriving (Eq, Ord, Show)
 
 instance Pretty Conjecture where
-  pretty n c = (pretty n (conjDataTypes c)) ++ "\n" ++
-               (pretty n (conjFunctions c)) ++ "\n" ++
-               (pretty n (conjAssert c))
+  pretty n c = (indent n $ pretty n (conjDataTypes c)) ++ "\n" ++
+               (indent n $ pretty n (conjFunctions c)) ++ "\n" ++
+               (indent n $ pretty n (conjAssert c))
 
 conjecture = Conjecture
 

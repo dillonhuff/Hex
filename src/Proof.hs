@@ -4,6 +4,7 @@ import Data.List as L
 import Data.Maybe
 
 import Core
+import Utils
 
 data Proof
   = TrueProof Conjecture
@@ -11,6 +12,12 @@ data Proof
   | SelectProof Conjecture Proof
     deriving (Eq, Ord, Show)
 
+instance Pretty Proof where
+  pretty n (TrueProof c) = (indent n $ pretty n c) ++ (indent n "@@@ TRUE @@@")
+  pretty n (UnfoldProof c p) =
+    (indent n $ pretty n c) ++ (indent n "@@@ UNFOLD @@@") ++ (indent n $ pretty n p)
+  pretty n (SelectProof c p) = (indent n $ pretty n c) ++ (indent n "@@@ SELECT @@@") ++ (pretty n p)
+  
 trueProof = TrueProof
 unfoldProof = UnfoldProof
 selectProof = SelectProof

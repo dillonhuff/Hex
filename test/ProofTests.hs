@@ -13,7 +13,8 @@ allProofTests =
             testThm trueFuncIsTrue True,
             testThm falseIsTrue False,
             testThm falseFuncIsTrue False,
-            testThm beqFalseFalse True]
+            testThm beqFalseFalse True,
+            testThm beqTrueFalse False]
 
 trueIsTrue = conjecture [boolDT] [] trueTerm
 
@@ -23,14 +24,16 @@ falseIsTrue = conjecture [boolDT] [] falseTerm
 
 falseFuncIsTrue = conjecture [boolDT] [falseFunc] falseFuncall
 
-beqFalseFalse = conjecture [boolDT] [beq] beqFuncall
+beqFalseFalse = conjecture [boolDT] [beq] beqFuncallFF
+beqTrueFalse = conjecture [boolDT] [beq] beqFuncallTF
 
 trueFunc = function (dId "trueFunc") [] [] boolType trueTerm
 falseFunc = function (dId "falseFunc") [] [] boolType falseTerm
 
 trueFuncall = ap (dGbl "trueFunc" (func [] boolType) []) []
 falseFuncall = ap (dGbl "falseFunc" (func [] boolType) []) []
-beqFuncall = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [falseTerm, falseTerm]
+beqFuncallFF = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [falseTerm, falseTerm]
+beqFuncallTF = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [trueTerm, falseTerm]
 
 testThm thm expected = TestCase $ tf thm expected
 
