@@ -10,6 +10,7 @@ data Proof
   = TrueProof Conjecture
   | UnfoldProof Conjecture Proof
   | SelectProof Conjecture Proof
+  | SplitVarProof Conjecture [Proof]
     deriving (Eq, Ord, Show)
 
 instance Pretty Proof where
@@ -21,6 +22,7 @@ instance Pretty Proof where
 trueProof = TrueProof
 unfoldProof = UnfoldProof
 selectProof = SelectProof
+splitVarProof = SplitVarProof
 
 tryToProve :: Conjecture -> Maybe Proof
 tryToProve c = tryToProve' selectAction c
@@ -53,7 +55,8 @@ selectAction' c (a:as) =
 
 actions = [eqAction,
            unfoldAction,
-           selectMatchAction]
+           selectMatchAction,
+           splitLocalAction]
 
 data Action
   = Action {
@@ -67,9 +70,34 @@ eqAction =
 
 unfoldAction =
   Action existsFunc substituteFunc simpleUnfoldProof
-
 selectMatchAction =
   Action existsDataConMatch substituteDataConMatches simpleSelectProof
+splitLocalAction =
+  Action existsLcl splitLcl splitVarProof
+
+existsLcl c =
+  (collectLcls $ conjAssert c) /= []
+
+splitLcl c =
+  let lclToSplit = L.head $ collectLcls $ conjAssert c
+      cons = lookupConstructors (lclType $ getLocal lclToSplit) c in
+   L.map (addSplitAssumption lclToSplit c) cons
+
+addSplitAssumption lcl c con =
+  c { conjAssert = genSub (\t -> t == lcl) (\t -> freshConstructorCall (conjAssert c) con) (conjAssert c) }
+
+freshConstructorCall t con =
+  let fvs = freshVars t (dcArgs con) in
+   ap (dcName con) fvs
+
+freshVars t [] = []
+
+lookupConstructors t c =
+  let tName = tyConName t
+      dts = conjDataTypes c in
+   dtConstructors $ L.head $ L.filter (\dt -> dtName dt == tName) dts
+
+collectLcls tm = collectFromTerms (\t -> if isLcl t then [t] else []) tm
 
 existsDataConMatch c = existsTerm (isDataConMatch c) $ conjAssert c
 substituteDataConMatches c =

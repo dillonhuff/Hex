@@ -7,11 +7,15 @@ module Core(Conjecture,
             genSub, sameFunc, replaceFunc,
             lcl, ap, match,
             existsTerm, isDataConMatch, selectMatch,
+            lclType, lclName, isLcl, getLocal, collectFromTerms,
             alt,
             conPat,
             dataCon,
+            dcName, dcArgs,
             datatype,
+            dtName, dtConstructors,
             tyCon, func,
+            tyConName,
             dId,
             idName,
             local, dLcl,
@@ -95,8 +99,18 @@ lcl = Lcl
 ap g args = g :@: args
 match = Match
 
+isLcl (Lcl _) = True
+isLcl _ = False
+
+getLocal (Lcl l) = l
+
 callHead (g :@: _) = g
 callArgs (_ :@: ts) = ts
+
+collectFromTerms :: (Term -> [a]) -> Term -> [a]
+collectFromTerms f t@(g :@: ts) = (f t) ++ L.concatMap (collectFromTerms f) ts
+collectFromTerms f t@(Match e alts) =
+  (f t) ++ (f e) ++ (L.concatMap (collectFromTerms f) $ L.map caseRHS alts)
 
 existsTerm :: (Term -> Bool) -> Term -> Bool
 existsTerm f t@(g :@: ts) =
@@ -164,6 +178,8 @@ data Type = TyVar Id | TyCon Id [Type] | Func [Type] Type
 
 tyCon = TyCon
 func = Func
+
+tyConName (TyCon n _) = n
 
 data Global =
   Global { gblName :: Id, gblType :: Type, gblArgs :: [Type] }

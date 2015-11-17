@@ -14,18 +14,18 @@ allProofTests =
             testThm falseIsTrue False,
             testThm falseFuncIsTrue False,
             testThm beqFalseFalse True,
-            testThm beqTrueFalse False]
+            testThm beqTrueFalse False,
+            testThm beqBBTrue True,
+            testThm beqBCFalse False]
 
 trueIsTrue = conjecture [boolDT] [] trueTerm
-
 trueFuncIsTrue = conjecture [boolDT] [trueFunc] trueFuncall
-
 falseIsTrue = conjecture [boolDT] [] falseTerm
-
 falseFuncIsTrue = conjecture [boolDT] [falseFunc] falseFuncall
-
 beqFalseFalse = conjecture [boolDT] [beq] beqFuncallFF
 beqTrueFalse = conjecture [boolDT] [beq] beqFuncallTF
+beqBBTrue = conjecture [boolDT] [beq] beqBB
+beqBCFalse = conjecture [boolDT] [beq] beqBC
 
 trueFunc = function (dId "trueFunc") [] [] boolType trueTerm
 falseFunc = function (dId "falseFunc") [] [] boolType falseTerm
@@ -34,6 +34,8 @@ trueFuncall = ap (dGbl "trueFunc" (func [] boolType) []) []
 falseFuncall = ap (dGbl "falseFunc" (func [] boolType) []) []
 beqFuncallFF = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [falseTerm, falseTerm]
 beqFuncallTF = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [trueTerm, falseTerm]
+beqBB = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [lcl $ dLcl "b" boolType, lcl $ dLcl "b" boolType]
+beqBC = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [lcl $ dLcl "b" boolType, lcl $ dLcl "c" boolType]
 
 testThm thm expected = TestCase $ tf thm expected
 
