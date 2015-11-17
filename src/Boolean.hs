@@ -1,5 +1,5 @@
 module Boolean(boolDT,
-               boolType,
+               boolType, bt,
                beq,
                trueTerm,
                falseTerm) where

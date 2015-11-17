@@ -91,7 +91,18 @@ freshConstructorCall t con =
   let fvs = freshVars t (dcArgs con) in
    ap (dcName con) fvs
 
-freshVars t [] = []
+freshVars t args =
+  let n = nextTempIndex t in
+   L.zipWith (\t i -> lcl $ dLcl (tempVarName i) t) args [n..((L.length args) - 1)]
+
+nextTempIndex t =
+  let tmps = collectFromTerms (\t -> if isTemp t then [t] else []) t
+      tmpVals = L.map (\tmp -> read $ L.drop 1 $ idName $ lclName $ getLocal tmp) tmps in
+   if tmpVals == [] then 0 else (L.maximum tmpVals) + 1
+
+isTemp t = isLcl t && (L.head $ idName $ lclName $ getLocal t) == '$'
+
+tempVarName i = "$" ++ show i
 
 lookupConstructors t c =
   let tName = tyConName t

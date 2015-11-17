@@ -111,6 +111,7 @@ collectFromTerms :: (Term -> [a]) -> Term -> [a]
 collectFromTerms f t@(g :@: ts) = (f t) ++ L.concatMap (collectFromTerms f) ts
 collectFromTerms f t@(Match e alts) =
   (f t) ++ (f e) ++ (L.concatMap (collectFromTerms f) $ L.map caseRHS alts)
+collectFromTerms f t@(Lcl l) = f t
 
 existsTerm :: (Term -> Bool) -> Term -> Bool
 existsTerm f t@(g :@: ts) =

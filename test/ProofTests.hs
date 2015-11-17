@@ -5,6 +5,7 @@ import Test.HUnit
 import Boolean
 import Core
 import Proof
+import Nat
 import TestUtils
 import Utils
 
@@ -16,7 +17,8 @@ allProofTests =
             testThm beqFalseFalse True,
             testThm beqTrueFalse False,
             testThm beqBBTrue True,
-            testThm beqBCFalse False]
+            testThm beqBCFalse False,
+            testThm nateqNNTrue True]
 
 trueIsTrue = conjecture [boolDT] [] trueTerm
 trueFuncIsTrue = conjecture [boolDT] [trueFunc] trueFuncall
@@ -26,6 +28,7 @@ beqFalseFalse = conjecture [boolDT] [beq] beqFuncallFF
 beqTrueFalse = conjecture [boolDT] [beq] beqFuncallTF
 beqBBTrue = conjecture [boolDT] [beq] beqBB
 beqBCFalse = conjecture [boolDT] [beq] beqBC
+nateqNNTrue = conjecture [natDT] [nateq] nateqNN
 
 trueFunc = function (dId "trueFunc") [] [] boolType trueTerm
 falseFunc = function (dId "falseFunc") [] [] boolType falseTerm
@@ -36,6 +39,7 @@ beqFuncallFF = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, bo
 beqFuncallTF = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [trueTerm, falseTerm]
 beqBB = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [lcl $ dLcl "b" boolType, lcl $ dLcl "b" boolType]
 beqBC = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [lcl $ dLcl "b" boolType, lcl $ dLcl "c" boolType]
+nateqNN = ap (dGbl "nateq" (func [natType, natType] natType) [natType, natType]) [lcl $ dLcl "n" natType, lcl $ dLcl "n" natType]
 
 testThm thm expected = TestCase $ tf thm expected
 
