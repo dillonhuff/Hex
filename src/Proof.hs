@@ -1,4 +1,4 @@
-module Proof(tryToProve, substituteFunc) where
+module Proof(tryToProve, splitLcl) where
 
 import Data.List as L
 import Data.Maybe
@@ -18,6 +18,7 @@ instance Pretty Proof where
   pretty n (UnfoldProof c p) =
     (indent n $ pretty n c) ++ (indent n "@@@ UNFOLD @@@") ++ (indent n $ pretty n p)
   pretty n (SelectProof c p) = (indent n $ pretty n c) ++ (indent n "@@@ SELECT @@@") ++ (pretty n p)
+  pretty n (SplitVarProof c ps) = (indent n $ pretty n c) ++ (indent n "@@@ SPLIT @@@") ++ (L.concatMap (pretty (n+1)) ps)
   
 trueProof = TrueProof
 unfoldProof = UnfoldProof
