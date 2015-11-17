@@ -16,8 +16,8 @@ bt = boolType
 trueTerm = ap trueGlobal []
 falseTerm = ap falseGlobal []
 
-trueGlobal = dGbl "T" bt []
-falseGlobal = dGbl "F" bt []
+trueGlobal = dGbl "T" (func [] bt)
+falseGlobal = dGbl "F" (func [] bt)
 
 beq = function (dId "beq") [] beqArgs bt beqBody
 

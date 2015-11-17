@@ -33,13 +33,13 @@ nateqNNTrue = conjecture [natDT] [nateq] nateqNN
 trueFunc = function (dId "trueFunc") [] [] boolType trueTerm
 falseFunc = function (dId "falseFunc") [] [] boolType falseTerm
 
-trueFuncall = ap (dGbl "trueFunc" (func [] boolType) []) []
-falseFuncall = ap (dGbl "falseFunc" (func [] boolType) []) []
-beqFuncallFF = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [falseTerm, falseTerm]
-beqFuncallTF = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [trueTerm, falseTerm]
-beqBB = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [lcl $ dLcl "b" boolType, lcl $ dLcl "b" boolType]
-beqBC = ap (dGbl "beq" (func [boolType, boolType] boolType) [boolType, boolType]) [lcl $ dLcl "b" boolType, lcl $ dLcl "c" boolType]
-nateqNN = ap (dGbl "nateq" (func [natType, natType] natType) [natType, natType]) [lcl $ dLcl "n" natType, lcl $ dLcl "n" natType]
+trueFuncall = ap (dGbl "trueFunc" (func [] boolType)) []
+falseFuncall = ap (dGbl "falseFunc" (func [] boolType)) []
+beqFuncallFF = ap (dGbl "beq" (func [boolType, boolType] boolType)) [falseTerm, falseTerm]
+beqFuncallTF = ap (dGbl "beq" (func [boolType, boolType] boolType)) [trueTerm, falseTerm]
+beqBB = ap (dGbl "beq" (func [boolType, boolType] boolType)) [lcl $ dLcl "b" boolType, lcl $ dLcl "b" boolType]
+beqBC = ap (dGbl "beq" (func [boolType, boolType] boolType)) [lcl $ dLcl "b" boolType, lcl $ dLcl "c" boolType]
+nateqNN = ap (dGbl "nateq" (func [natType, natType] natType)) [lcl $ dLcl "n" natType, lcl $ dLcl "n" natType]
 
 testThm thm expected = TestCase $ tf thm expected
 

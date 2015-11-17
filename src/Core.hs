@@ -45,7 +45,7 @@ eqTerm c =
    gbl :@: [] -> sameName gbl trueGbl
    _ -> False
 
-trueGbl = global trueId boolType []
+trueGbl = global trueId boolType
 trueId = dId "T"
 boolType = tyCon (dId "Bool") []
 
@@ -183,17 +183,17 @@ func = Func
 tyConName (TyCon n _) = n
 
 data Global =
-  Global { gblName :: Id, gblType :: Type, gblArgs :: [Type] }
+  Global { gblName :: Id, gblType :: Type }
   deriving (Eq, Ord, Show)
 
 instance Pretty Global where
-  pretty n (Global name _ _) = pretty n name
+  pretty n (Global name _) = pretty n name
 
 global = Global
 
-dGbl n tp args = global (dId n) tp args
+dGbl n tp = global (dId n) tp
 
-sameName (Global id1 _ _) (Global id2 _ _) = (idName id1) == (idName id2)
+sameName (Global id1 _) (Global id2 _) = (idName id1) == (idName id2)
 
 data Local =
   Local { lclName :: Id, lclType :: Type }
