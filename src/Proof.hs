@@ -1,4 +1,6 @@
-module Proof(tryToProve, splitLcl) where
+module Proof(tryToProve,
+             inductionLcl,
+             substituteFunc) where
 
 import Data.List as L
 import Data.Maybe
@@ -8,6 +10,7 @@ import Utils
 
 data Proof
   = TrueProof Conjecture
+  | EqProof Conjecture
   | UnfoldProof Conjecture Proof
   | SelectProof Conjecture Proof
   | SplitVarProof Conjecture [Proof]
@@ -22,13 +25,16 @@ instance Pretty Proof where
   pretty n (SplitVarProof c ps) = (indent n $ pretty n c) ++ (indent n "@@@ SPLIT @@@") ++ (L.concatMap (pretty (n+1)) ps)
   
 trueProof = TrueProof
+eqProof = EqProof
 unfoldProof = UnfoldProof
 selectProof = SelectProof
 splitVarProof = SplitVarProof
 inductionProof = InductionProof
 
+maxDepth = 7
+
 tryToProve :: Conjecture -> Maybe Proof
-tryToProve c = tryToProve' selectAction c
+tryToProve c = dfs actions c maxDepth --tryToProve' selectAction c
 
 tryToProve' :: (Conjecture -> Maybe Action) -> Conjecture -> Maybe Proof
 tryToProve' s c =
@@ -45,6 +51,28 @@ applyAction s a c =
        True -> Just $ (acGenProof a) c results
        False -> Nothing
 
+dfs :: [Action] -> Conjecture -> Int -> Maybe Proof
+dfs _ _ 0 = Nothing
+dfs [] c d = Nothing
+dfs as c d =
+  let results = L.map (\a -> dfsCall a as c (d - 1)) as
+      successes = L.filter isJust results in
+   case successes == [] of
+    True -> Nothing
+    False -> L.head successes
+
+dfsCall :: Action -> [Action] -> Conjecture -> Int -> Maybe Proof
+dfsCall a as c d =
+  case (acApplies a) c of
+   True ->
+     let subgoals = (acGenSubgoals a) c
+         results = L.map (\s -> dfs as s d) subgoals
+         successes = catMaybes results in
+      case (L.length successes) /= (L.length subgoals) of
+       True -> Nothing
+       False -> Just $ (acGenProof a) c successes
+   False -> Nothing
+
 allProved subgoals results =
   L.length subgoals == L.length results
 
@@ -60,7 +88,8 @@ actions = [inductionAction,
            eqAction,
            unfoldAction,
            selectMatchAction,
-           splitLocalAction]
+           splitLocalAction,
+           eqAction2]
 
 data Action
   = Action {
@@ -69,6 +98,8 @@ data Action
     acGenProof :: Conjecture -> [Proof] -> Proof
     }
 
+eqAction2 =
+  Action assumeEq (\_ -> []) (\c _ -> eqProof c)
 eqAction =
   Action eqTerm (\_ -> []) (\c _ -> trueProof c)
 unfoldAction =
@@ -80,6 +111,10 @@ splitLocalAction =
 inductionAction =
   Action existsLcl inductionLcl inductionProof
 
+assumeEq c =
+  let g = conjAssert c in
+   (L.filter (\(t1, t2) -> (t1 == g && t2 == trueTermC)) $ conjAssumptions c) /= []
+
 existsLcl c =
   (collectLcls $ conjAssert c) /= []
 
@@ -90,11 +125,11 @@ inductionLcl c =
 
 inductionSubgoal l c con =
   let k = freshConstructorCall (conjAssert c) con
-      fvs = callArgs $ k
+      fvs = callArgs k
       recVars = L.filter (\v -> (lclType $ getLocal v) == (lclType $ getLocal l)) fvs
       oldAssert = conjAssert c
       newAssert = genSub (\t -> t == l) (\t -> k) oldAssert
-      newAssumptions = L.map (\x -> (genSub (\t -> t == x) (\t -> x) oldAssert, trueTermC)) fvs in
+      newAssumptions = L.map (\x -> (genSub (\t -> t == l) (\t -> x) oldAssert, trueTermC)) fvs in
    c { conjAssumptions = newAssumptions ++ (conjAssumptions c),
        conjAssert = newAssert }
       
@@ -136,17 +171,16 @@ substituteDataConMatches c =
   [c {conjAssert = genSub (isDataConMatch c) selectMatch $ conjAssert c}]
 
 existsFunc c =
-  case conjFunctions c of
-   [] -> False
-   _ -> True
+  existsTerm (isFuncall c) $ conjAssert c
 
 substituteFunc c =
   case conjFunctions c of
    (f:fs) ->
-      [c {conjFunctions = L.delete f $ conjFunctions c,
-          conjAssert = replaceFuncWithBody f $ conjAssert c}]
+      [c { conjAssert = replaceFuncWithBody f $ conjAssert c}]
    _ -> [c]
-   
+
+-- conjFunctions = L.delete f $ conjFunctions c,
+
 simpleUnfoldProof c [subProof] = unfoldProof c subProof
 simpleSelectProof c [subProof] = selectProof c subProof
 

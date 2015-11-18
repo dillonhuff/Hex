@@ -8,7 +8,7 @@ module Core(Conjecture,
             lcl, ap, match,
             callHead, callArgs,
             existsTerm, isDataConMatch, selectMatch,
-            lclType, lclName, isLcl, getLocal, collectFromTerms,
+            lclType, lclName, isLcl, isFuncall, getLocal, collectFromTerms,
             alt,
             conPat,
             dataCon,
@@ -38,6 +38,7 @@ data Conjecture =
 instance Pretty Conjecture where
   pretty n c = (indent n $ pretty n (conjDataTypes c)) ++ "\n" ++
                (indent n $ pretty n (conjFunctions c)) ++ "\n" ++
+               (L.concatMap (\(t1, t2) -> indent n $ pretty n t1 ++ " = " ++ pretty n t2) $ conjAssumptions c) ++
                (indent n $ pretty n (conjAssert c))
 
 conjecture = Conjecture
@@ -48,7 +49,7 @@ eqTerm c =
    _ -> False
 
 trueTermC = ap trueGbl []
-trueGbl = global trueId boolType
+trueGbl = global trueId (func [] boolType)
 trueId = dId "T"
 boolType = tyCon (dId "Bool") []
 
@@ -105,6 +106,9 @@ match = Match
 isLcl (Lcl _) = True
 isLcl _ = False
 
+isFuncall c (g :@: _) = L.elem (gblName g) $ L.map funcName $ conjFunctions c
+isFuncall _ _ = False
+
 getLocal (Lcl l) = l
 
 callHead (g :@: _) = g
@@ -143,6 +147,7 @@ selectMatch (Match t alts) =
    L.foldr replaceParam rhs $ subPairs
   
 sameFunc f (g :@: _) = f == (gblName g)
+sameFunc _ _ = False
 
 replaceFunc body formalParams (_ :@: args) =
   L.foldr replaceParam body $ L.zip formalParams args

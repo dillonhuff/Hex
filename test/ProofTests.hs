@@ -18,7 +18,10 @@ allProofTests =
             testThm beqTrueFalse False,
             testThm beqBBTrue True,
             testThm beqBCFalse False,
-            testThm nateqNNTrue True]
+            testThm nateqNNTrue True,
+            testThm bEqTrue True,
+            testThm nateqZZTrue True,
+            testThm nateqSZSZTrue True]
 
 trueIsTrue = conjecture [boolDT] [] [] trueTerm
 trueFuncIsTrue = conjecture [boolDT] [trueFunc] [] trueFuncall
@@ -29,6 +32,9 @@ beqTrueFalse = conjecture [boolDT] [beq] [] beqFuncallTF
 beqBBTrue = conjecture [boolDT] [beq] [] beqBB
 beqBCFalse = conjecture [boolDT] [beq] [] beqBC
 nateqNNTrue = conjecture [natDT] [nateq] [] nateqNN
+bEqTrue = conjecture [boolDT] [] [(bTerm, trueTerm)] bTerm
+nateqSZSZTrue = conjecture [natDT] [nateq] [] nateqSZSZ
+nateqZZTrue = conjecture [natDT] [nateq] [] nateqZZ
 
 trueFunc = function (dId "trueFunc") [] [] boolType trueTerm
 falseFunc = function (dId "falseFunc") [] [] boolType falseTerm
@@ -39,7 +45,13 @@ beqFuncallFF = ap (dGbl "beq" (func [boolType, boolType] boolType)) [falseTerm, 
 beqFuncallTF = ap (dGbl "beq" (func [boolType, boolType] boolType)) [trueTerm, falseTerm]
 beqBB = ap (dGbl "beq" (func [boolType, boolType] boolType)) [lcl $ dLcl "b" boolType, lcl $ dLcl "b" boolType]
 beqBC = ap (dGbl "beq" (func [boolType, boolType] boolType)) [lcl $ dLcl "b" boolType, lcl $ dLcl "c" boolType]
-nateqNN = ap (dGbl "nateq" (func [natType, natType] natType)) [lcl $ dLcl "n" natType, lcl $ dLcl "n" natType]
+nateqNN = ap (dGbl "nateq" (func [natType, natType] bt)) [lcl $ dLcl "n" natType, lcl $ dLcl "n" natType]
+nateqSZSZ = ap (dGbl "nateq" (func [natType, natType] bt)) [sz, sz]
+nateqZZ = ap (dGbl "nateq" (func [natType, natType] bt)) [ap zeroGlobal [], ap zeroGlobal []]
+
+sz = ap sGlobal [ap zeroGlobal []]
+
+bTerm = lcl $ dLcl "b" boolType
 
 testThm thm expected = TestCase $ tf thm expected
 
@@ -54,7 +66,3 @@ someProof res =
   case res of
    Just _ -> True
    Nothing -> False
-
-caseFile name = testPath ++ name ++ ".smt2"
-
-testPath = "/Users/dillon/Haskell/ThmProving/Hex/test/cases/"

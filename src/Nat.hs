@@ -1,4 +1,5 @@
 module Nat(natDT,
+           sGlobal, zeroGlobal,
            natType,
            nateq) where
 
