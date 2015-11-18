@@ -1,11 +1,12 @@
 module Core(Conjecture,
             conjecture,
             eqTerm,
-            conjDataTypes, conjFunctions, conjAssert,
-            function,
+            conjDataTypes, conjFunctions, conjAssumptions, conjAssert,
+            function, trueTermC,
             funcBody, funcName, funcArgs,
             genSub, sameFunc, replaceFunc,
             lcl, ap, match,
+            callHead, callArgs,
             existsTerm, isDataConMatch, selectMatch,
             lclType, lclName, isLcl, getLocal, collectFromTerms,
             alt,
@@ -30,6 +31,7 @@ data Conjecture =
   Conjecture {
     conjDataTypes :: [Datatype],
     conjFunctions :: [Function],
+    conjAssumptions :: [(Term, Term)],
     conjAssert :: Term
     } deriving (Eq, Ord, Show)
 
@@ -45,6 +47,7 @@ eqTerm c =
    gbl :@: [] -> sameName gbl trueGbl
    _ -> False
 
+trueTermC = ap trueGbl []
 trueGbl = global trueId boolType
 trueId = dId "T"
 boolType = tyCon (dId "Bool") []

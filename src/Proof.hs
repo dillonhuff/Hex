@@ -11,6 +11,7 @@ data Proof
   | UnfoldProof Conjecture Proof
   | SelectProof Conjecture Proof
   | SplitVarProof Conjecture [Proof]
+  | InductionProof Conjecture [Proof]
     deriving (Eq, Ord, Show)
 
 instance Pretty Proof where
@@ -24,6 +25,7 @@ trueProof = TrueProof
 unfoldProof = UnfoldProof
 selectProof = SelectProof
 splitVarProof = SplitVarProof
+inductionProof = InductionProof
 
 tryToProve :: Conjecture -> Maybe Proof
 tryToProve c = tryToProve' selectAction c
@@ -54,7 +56,8 @@ selectAction' c (a:as) =
    True -> Just a
    False -> selectAction' c as
 
-actions = [eqAction,
+actions = [inductionAction,
+           eqAction,
            unfoldAction,
            selectMatchAction,
            splitLocalAction]
@@ -68,17 +71,34 @@ data Action
 
 eqAction =
   Action eqTerm (\_ -> []) (\c _ -> trueProof c)
-
 unfoldAction =
   Action existsFunc substituteFunc simpleUnfoldProof
 selectMatchAction =
   Action existsDataConMatch substituteDataConMatches simpleSelectProof
 splitLocalAction =
   Action existsLcl splitLcl splitVarProof
+inductionAction =
+  Action existsLcl inductionLcl inductionProof
 
 existsLcl c =
   (collectLcls $ conjAssert c) /= []
 
+inductionLcl c =
+  let lclToInd = L.head $ collectLcls $ conjAssert c
+      cons = lookupConstructors (lclType $ getLocal lclToInd) c in
+   L.map (inductionSubgoal lclToInd c) cons
+
+inductionSubgoal l c con =
+  let k = freshConstructorCall (conjAssert c) con
+      fvs = callArgs $ k
+      recVars = L.filter (\v -> (lclType $ getLocal v) == (lclType $ getLocal l)) fvs
+      oldAssert = conjAssert c
+      newAssert = genSub (\t -> t == l) (\t -> k) oldAssert
+      newAssumptions = L.map (\x -> (genSub (\t -> t == x) (\t -> x) oldAssert, trueTermC)) fvs in
+   c { conjAssumptions = newAssumptions ++ (conjAssumptions c),
+       conjAssert = newAssert }
+      
+  
 splitLcl c =
   let lclToSplit = L.head $ collectLcls $ conjAssert c
       cons = lookupConstructors (lclType $ getLocal lclToSplit) c in
