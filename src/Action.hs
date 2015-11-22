@@ -49,7 +49,6 @@ substTerm c =
          t2 = snd $ sub in
       Just ([c { conjAssert = (genSub (\t -> t == t1) (\t -> t2) $ fst $ conjAssert c, snd $ conjAssert c)}], \[s] -> substituteProof c s)
 
-
 possibleSubstitutions c =
   let as = conjAssumptions c
       lhs = fst $ conjAssert c in
@@ -65,7 +64,6 @@ existsLcl c =
   case collectLcls $ fst $ conjAssert c of
    [] -> Nothing
    lcls -> Just (inductionLcl c, inductionProof c)
-
 
 inductionLcl c =
   let lclToInd = L.head $ collectLcls $ fst $ conjAssert c
