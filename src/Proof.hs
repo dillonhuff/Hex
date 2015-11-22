@@ -2,6 +2,7 @@ module Proof(Proof,
              Action,
              Conjecture,
              acGenProof, acGenSubgoals, acApplies,
+             inductionLcl,
              actions,
              substituteFunc) where
 
@@ -14,6 +15,7 @@ import Utils
 data Proof
   = TrueProof Conjecture
   | EqProof Conjecture
+  | SubstituteProof Conjecture Proof
   | UnfoldProof Conjecture Proof
   | SelectProof Conjecture Proof
   | SplitVarProof Conjecture [Proof]
@@ -31,16 +33,19 @@ instance Pretty Proof where
 
 trueProof = TrueProof
 eqProof = EqProof
+substituteProof = SubstituteProof
 unfoldProof = UnfoldProof
 selectProof = SelectProof
 splitVarProof = SplitVarProof
 inductionProof = InductionProof
 
-actions = [eqAction,
+actions = [inductionAction,
+           eqAction,
+           substAction,
            selectMatchAction,
            unfoldAction,
-           splitLocalAction,
-           inductionAction]
+           splitLocalAction]
+           
 
 data Action
   = Action {
@@ -49,6 +54,8 @@ data Action
     acGenProof :: Conjecture -> [Proof] -> Proof
     }
 
+substAction =
+  Action substTerm substituteTerm (\c [s] -> substituteProof c s)
 eqAction =
   Action assumeEq (\_ -> []) (\c _ -> eqProof c)
 unfoldAction =
@@ -65,6 +72,19 @@ assumeEq c =
       t1 = snd $ conjAssert c in
    t0 == t1 || (L.filter (\(a0, a1) -> (t0 == a0 && t1 == a1)) $ conjAssumptions c) /= []
 
+substTerm c = (possibleSubstitutions c) /= []
+
+possibleSubstitutions c =
+  let as = conjAssumptions c
+      lhs = fst $ conjAssert c in
+   [(s1, s2) | (s1, s2) <- as, existsTerm (\t -> t == s1) lhs]
+
+substituteTerm c =
+  let sub = L.head $ possibleSubstitutions c
+      t1 = fst $ sub
+      t2 = snd $ sub in
+   [c { conjAssert = (genSub (\t -> t == t1) (\t -> t2) $ fst $ conjAssert c, snd $ conjAssert c)}]
+
 existsLcl c =
   (collectLcls $ fst $ conjAssert c) /= []
 
@@ -79,9 +99,10 @@ inductionSubgoal l c con =
       recVars = L.filter (\v -> (lclType $ getLocal v) == (lclType $ getLocal l)) fvs
       oldAssert = fst $ conjAssert c
       newAssert = genSub (\t -> t == l) (\t -> k) oldAssert
-      newAssumptions = L.map (\x -> (genSub (\t -> t == l) (\t -> x) oldAssert, snd $ conjAssert c)) fvs in
+      newAssertR = genSub (\t -> t == l) (\t -> k) $ snd $ conjAssert c
+      newAssumptions = L.map (\x -> (genSub (\t -> t == l) (\t -> x) oldAssert, genSub (\t -> t == l) (\t -> x) $ snd $ conjAssert c)) fvs in
    c { conjAssumptions = newAssumptions ++ (conjAssumptions c),
-       conjAssert = (newAssert, snd $ conjAssert c) }      
+       conjAssert = (newAssert, newAssertR) }
   
 splitLcl c =
   let lclToSplit = L.head $ collectLcls $ fst $ conjAssert c

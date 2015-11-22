@@ -65,9 +65,13 @@ data Function =
 function = Function
 
 instance Pretty Function where
-  pretty n f = ps $ (spaces ["define-fun", pretty 0 (funcName f), ps ""]) ++
+  pretty n f = ps $ (spaces ["define-fun", pretty 0 (funcName f), prettyArgs $ funcArgs f, pretty 0 $ funcRes f]) ++
                (pretty (n+1) $ funcBody f)
-  
+
+prettyArgs args = ps $ spaces $ L.map prettyArg args
+
+prettyArg a = ps $ spaces [pretty 0 a, pretty 0 $ lclType a]
+
 data Datatype =
   Datatype {
     dtName :: Id,
@@ -184,6 +188,9 @@ conPat = ConPat
 
 data Type = TyVar Id | TyCon Id [Type] | Func [Type] Type
           deriving (Eq, Ord, Show)
+
+instance Pretty Type where
+  pretty n (TyCon i []) = pretty 0 i
 
 tyCon = TyCon
 func = Func
