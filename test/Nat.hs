@@ -2,7 +2,8 @@ module Nat(natDT,
            nv, nt, sGlobal, zeroGlobal,
            natplusGbl,
            natType,
-           nateq, natplus) where
+           nateq, natplus,
+           natThms) where
 
 import Boolean
 import Core
@@ -37,3 +38,26 @@ sTerm = match n2 [alt zPat falseTerm, alt (sPat "p2") (ap (dGbl "nateq" (func [n
 natType = tyCon (dId "Nat") []
 
 nt = natType
+
+-- Test theorems about natural numbers
+natThms = [nateqNNTrue,
+           nateqZZTrue,
+           nateqSZSZTrue,
+           natplusZNTrue,
+           natplusNZTrue,
+           natplusComm]
+
+nateqNNTrue = conjecture [natDT] [nateq] [] (nateqNN, trueTerm)
+nateqSZSZTrue = conjecture [natDT] [nateq] [] (nateqSZSZ, trueTerm)
+nateqZZTrue = conjecture [natDT] [nateq] [] (nateqZZ, trueTerm)
+natplusZNTrue = conjecture [natDT] [natplus] [] (natplusZN, nv "n")
+natplusNZTrue = conjecture [natDT] [natplus] [] (natplusNZ, nv "n")
+natplusComm = conjecture [natDT] [natplus] [] (ap natplusGbl [nv "a", nv "b"], ap natplusGbl [nv "b", nv "a"])
+
+nateqNN = ap (dGbl "nateq" (func [natType, natType] bt)) [lcl $ dLcl "n" natType, lcl $ dLcl "n" natType]
+nateqSZSZ = ap (dGbl "nateq" (func [natType, natType] bt)) [sz, sz]
+nateqZZ = ap (dGbl "nateq" (func [natType, natType] bt)) [ap zeroGlobal [], ap zeroGlobal []]
+natplusZN = ap natplusGbl [ap zeroGlobal [], nv "n"]
+natplusNZ = ap natplusGbl [nv "n", ap zeroGlobal []]
+
+sz = ap sGlobal [ap zeroGlobal []]

@@ -1,7 +1,7 @@
 module Proof(Proof,
              Action,
              Conjecture,
-             acGenProof, acGenSubgoals, acApplies,
+             acApplies,
              inductionLcl,
              actions,
              substituteFunc) where
@@ -45,34 +45,41 @@ actions = [inductionAction,
            selectMatchAction,
            unfoldAction,
            splitLocalAction]
-           
 
 data Action
   = Action {
-    acApplies :: Conjecture -> Bool,
-    acGenSubgoals :: Conjecture -> [Conjecture],
-    acGenProof :: Conjecture -> [Proof] -> Proof
+    acApplies :: Conjecture -> Maybe ([Conjecture], [Proof] -> Proof)
     }
 
 substAction =
-  Action substTerm substituteTerm (\c [s] -> substituteProof c s)
+  Action substTerm
 eqAction =
-  Action assumeEq (\_ -> []) (\c _ -> eqProof c)
+  Action assumeEq
 unfoldAction =
-  Action existsFunc substituteFunc simpleUnfoldProof
+  Action existsFunc
 selectMatchAction =
-  Action existsDataConMatch substituteDataConMatches simpleSelectProof
+  Action existsDataConMatch
 splitLocalAction =
-  Action existsLcl splitLcl splitVarProof
+  Action existsLclSplit --splitLcl splitVarProof
 inductionAction =
-  Action existsLcl inductionLcl inductionProof
+  Action existsLcl
 
 assumeEq c =
   let t0 = fst $ conjAssert c
       t1 = snd $ conjAssert c in
-   t0 == t1 || (L.filter (\(a0, a1) -> (t0 == a0 && t1 == a1)) $ conjAssumptions c) /= []
+   case t0 == t1 || (L.filter (\(a0, a1) -> (t0 == a0 && t1 == a1)) $ conjAssumptions c) /= [] of
+    True -> Just ([], \_ -> eqProof c)
+    False -> Nothing
 
-substTerm c = (possibleSubstitutions c) /= []
+substTerm c =
+  case possibleSubstitutions c of
+   [] -> Nothing
+   subs ->
+     let sub = L.head $ possibleSubstitutions c
+         t1 = fst $ sub
+         t2 = snd $ sub in
+      Just ([c { conjAssert = (genSub (\t -> t == t1) (\t -> t2) $ fst $ conjAssert c, snd $ conjAssert c)}], \[s] -> substituteProof c s)
+
 
 possibleSubstitutions c =
   let as = conjAssumptions c
@@ -86,7 +93,10 @@ substituteTerm c =
    [c { conjAssert = (genSub (\t -> t == t1) (\t -> t2) $ fst $ conjAssert c, snd $ conjAssert c)}]
 
 existsLcl c =
-  (collectLcls $ fst $ conjAssert c) /= []
+  case collectLcls $ fst $ conjAssert c of
+   [] -> Nothing
+   lcls -> Just (inductionLcl c, inductionProof c)
+
 
 inductionLcl c =
   let lclToInd = L.head $ collectLcls $ fst $ conjAssert c
@@ -103,7 +113,12 @@ inductionSubgoal l c con =
       newAssumptions = L.map (\x -> (genSub (\t -> t == l) (\t -> x) oldAssert, genSub (\t -> t == l) (\t -> x) $ snd $ conjAssert c)) fvs in
    c { conjAssumptions = newAssumptions ++ (conjAssumptions c),
        conjAssert = (newAssert, newAssertR) }
-  
+
+existsLclSplit c =
+  case collectLcls $ fst $ conjAssert c of
+   [] -> Nothing
+   lcls -> Just (splitLcl c, splitVarProof c)
+
 splitLcl c =
   let lclToSplit = L.head $ collectLcls $ fst $ conjAssert c
       cons = lookupConstructors (lclType $ getLocal lclToSplit) c in
@@ -136,12 +151,18 @@ lookupConstructors t c =
 
 collectLcls tm = collectFromTerms (\t -> if isLcl t then [t] else []) tm
 
-existsDataConMatch c = existsTerm (isDataConMatch c) $ fst $ conjAssert c
+existsDataConMatch c =
+  case existsTerm (isDataConMatch c) $ fst $ conjAssert c of
+   True -> Just (substituteDataConMatches c, simpleSelectProof c)
+   False -> Nothing
+
 substituteDataConMatches c =
   [c {conjAssert = (genSub (isDataConMatch c) selectMatch $ fst $ conjAssert c, snd $ conjAssert c)}]
 
 existsFunc c =
-  existsTerm (isFuncall c) $ fst $ conjAssert c
+  case existsTerm (isFuncall c) $ fst $ conjAssert c of
+   True -> Just (substituteFunc c, simpleUnfoldProof c)
+   False -> Nothing
 
 substituteFunc c =
   case conjFunctions c of
