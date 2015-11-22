@@ -23,18 +23,18 @@ allProofTests =
             testThm nateqZZTrue True,
             testThm nateqSZSZTrue True]
 
-trueIsTrue = conjecture [boolDT] [] [] trueTerm
-trueFuncIsTrue = conjecture [boolDT] [trueFunc] [] trueFuncall
-falseIsTrue = conjecture [boolDT] [] [] falseTerm
-falseFuncIsTrue = conjecture [boolDT] [falseFunc] [] falseFuncall
-beqFalseFalse = conjecture [boolDT] [beq] [] beqFuncallFF
-beqTrueFalse = conjecture [boolDT] [beq] [] beqFuncallTF
-beqBBTrue = conjecture [boolDT] [beq] [] beqBB
-beqBCFalse = conjecture [boolDT] [beq] [] beqBC
-nateqNNTrue = conjecture [natDT] [nateq] [] nateqNN
-bEqTrue = conjecture [boolDT] [] [(bTerm, trueTerm)] bTerm
-nateqSZSZTrue = conjecture [natDT] [nateq] [] nateqSZSZ
-nateqZZTrue = conjecture [natDT] [nateq] [] nateqZZ
+trueIsTrue = conjecture [boolDT] [] [] (trueTerm, trueTerm)
+trueFuncIsTrue = conjecture [boolDT] [trueFunc] [] (trueFuncall, trueTerm)
+falseIsTrue = conjecture [boolDT] [] [] (falseTerm, trueTerm)
+falseFuncIsTrue = conjecture [boolDT] [falseFunc] [] (falseFuncall, trueTerm)
+beqFalseFalse = conjecture [boolDT] [beq] [] (beqFuncallFF, trueTerm)
+beqTrueFalse = conjecture [boolDT] [beq] [] (beqFuncallTF, trueTerm)
+beqBBTrue = conjecture [boolDT] [beq] [] (beqBB, trueTerm)
+beqBCFalse = conjecture [boolDT] [beq] [] (beqBC, trueTerm)
+nateqNNTrue = conjecture [natDT] [nateq] [] (nateqNN, trueTerm)
+bEqTrue = conjecture [boolDT] [] [(bTerm, trueTerm)] (bTerm, trueTerm)
+nateqSZSZTrue = conjecture [natDT] [nateq] [] (nateqSZSZ, trueTerm)
+nateqZZTrue = conjecture [natDT] [nateq] [] (nateqZZ, trueTerm)
 
 trueFunc = function (dId "trueFunc") [] [] boolType trueTerm
 falseFunc = function (dId "falseFunc") [] [] boolType falseTerm

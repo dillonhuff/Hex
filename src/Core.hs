@@ -32,19 +32,19 @@ data Conjecture =
     conjDataTypes :: [Datatype],
     conjFunctions :: [Function],
     conjAssumptions :: [(Term, Term)],
-    conjAssert :: Term
+    conjAssert :: (Term, Term)
     } deriving (Eq, Ord, Show)
 
 instance Pretty Conjecture where
   pretty n c = (indent n $ pretty n (conjDataTypes c)) ++ "\n" ++
                (indent n $ pretty n (conjFunctions c)) ++ "\n" ++
                (L.concatMap (\(t1, t2) -> indent n $ pretty n t1 ++ " = " ++ pretty n t2) $ conjAssumptions c) ++
-               (indent n $ pretty n (conjAssert c))
+               (indent n $ ps $ spaces ["=", pretty n (fst $ conjAssert c), pretty n (snd $ conjAssert c)])
 
 conjecture = Conjecture
 
 eqTerm c =
-  case conjAssert c of
+  case fst $ conjAssert c of
    gbl :@: [] -> sameName gbl trueGbl
    _ -> False
 
