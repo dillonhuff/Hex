@@ -22,7 +22,9 @@ allProofTests =
             testThm nateqNNTrue True,
             testThm bEqTrue True,
             testThm nateqZZTrue True,
-            testThm nateqSZSZTrue True]
+            testThm nateqSZSZTrue True,
+            testThm natplusZNTrue True,
+            testThm natplusNZTrue True]
 
 trueIsTrue = conjecture [boolDT] [] [] (trueTerm, trueTerm)
 trueFuncIsTrue = conjecture [boolDT] [trueFunc] [] (trueFuncall, trueTerm)
@@ -36,6 +38,8 @@ nateqNNTrue = conjecture [natDT] [nateq] [] (nateqNN, trueTerm)
 bEqTrue = conjecture [boolDT] [] [(bTerm, trueTerm)] (bTerm, trueTerm)
 nateqSZSZTrue = conjecture [natDT] [nateq] [] (nateqSZSZ, trueTerm)
 nateqZZTrue = conjecture [natDT] [nateq] [] (nateqZZ, trueTerm)
+natplusZNTrue = conjecture [natDT] [natplus] [] (natplusZN, nv "n")
+natplusNZTrue = conjecture [natDT] [natplus] [] (natplusNZ, nv "n")
 
 trueFunc = function (dId "trueFunc") [] [] boolType trueTerm
 falseFunc = function (dId "falseFunc") [] [] boolType falseTerm
@@ -49,6 +53,8 @@ beqBC = ap (dGbl "beq" (func [boolType, boolType] boolType)) [lcl $ dLcl "b" boo
 nateqNN = ap (dGbl "nateq" (func [natType, natType] bt)) [lcl $ dLcl "n" natType, lcl $ dLcl "n" natType]
 nateqSZSZ = ap (dGbl "nateq" (func [natType, natType] bt)) [sz, sz]
 nateqZZ = ap (dGbl "nateq" (func [natType, natType] bt)) [ap zeroGlobal [], ap zeroGlobal []]
+natplusZN = ap natplusGbl [ap zeroGlobal [], nv "n"]
+natplusNZ = ap natplusGbl [nv "n", ap zeroGlobal []]
 
 sz = ap sGlobal [ap zeroGlobal []]
 
