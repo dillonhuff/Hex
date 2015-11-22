@@ -3,6 +3,7 @@ module Search(tryToProve) where
 import Data.List as L
 import Data.Maybe
 
+import Action
 import Proof
 
 maxDepth = 7
