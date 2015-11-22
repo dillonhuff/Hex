@@ -1,5 +1,8 @@
-module Proof(tryToProve,
-             inductionLcl,
+module Proof(Proof,
+             Action,
+             Conjecture,
+             acGenProof, acGenSubgoals, acApplies,
+             actions,
              substituteFunc) where
 
 import Data.List as L
@@ -32,14 +35,6 @@ unfoldProof = UnfoldProof
 selectProof = SelectProof
 splitVarProof = SplitVarProof
 inductionProof = InductionProof
-applyAction s a c =
-  case (acApplies a) c of
-   True ->
-     let subgoals = (acGenSubgoals a) c
-         results = catMaybes $ L.map (tryToProve' s) subgoals in
-      case allProved subgoals results of
-       True -> Just $ (acGenProof a) c results
-       False -> Nothing
 
 actions = [eqAction,
            selectMatchAction,

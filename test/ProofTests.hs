@@ -6,6 +6,7 @@ import Boolean
 import Core
 import Proof
 import Nat
+import Search
 import TestUtils
 import Utils
 
