@@ -1,4 +1,4 @@
-module ProofTests(allProofTests) where
+module SearchTests(allSearchTests) where
 
 import Data.List as L
 import Test.HUnit
@@ -11,7 +11,7 @@ import Search
 import TestUtils
 import Utils
 
-allProofTests =
+allSearchTests =
   TestList $ L.map (\(t, r) -> testThm t r) $ thms ++ nonThms
 
 thms = L.map (\t -> (t, True)) $ boolThms ++ natThms

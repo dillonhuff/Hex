@@ -4,12 +4,13 @@ import Data.List as L
 import Data.Maybe
 
 import Action
+import BasicActions
 import Proof
 
 maxDepth = 7
 
 tryToProve :: Conjecture -> Maybe Proof
-tryToProve c = dfs actions c maxDepth
+tryToProve c = dfs basicActions c maxDepth
 
 dfs :: [Action] -> Conjecture -> Int -> Maybe Proof
 dfs _ _ 0 = Nothing

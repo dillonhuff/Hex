@@ -2,7 +2,7 @@ module AllTests(main) where
 
 import Test.HUnit
 
-import ProofTests
+import SearchTests
 
 main = do
-  runTestTT allProofTests
+  runTestTT allSearchTests
