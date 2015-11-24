@@ -9,6 +9,7 @@ module Core(Conjecture,
             callHead, callArgs,
             existsTerm, isDataConMatch, selectMatch,
             lclType, lclName, isLcl, isFuncall, getLocal, collectFromTerms,
+            noFreeVars, freeVars,
             alt,
             conPat,
             dataCon,
@@ -123,6 +124,19 @@ collectFromTerms f t@(g :@: ts) = (f t) ++ L.concatMap (collectFromTerms f) ts
 collectFromTerms f t@(Match e alts) =
   (f t) ++ (f e) ++ (L.concatMap (collectFromTerms f) $ L.map caseRHS alts)
 collectFromTerms f t@(Lcl l) = f t
+
+noFreeVars t = (freeVars t) == []
+
+freeVars t = freeVars' [] t
+
+freeVars' :: [Term] -> Term -> [Term]
+freeVars' vs (g :@: ts) = L.concatMap (freeVars' vs) ts
+freeVars' vs (Match e alts) = (freeVars' vs e) ++ (L.concatMap (altFreeVars vs) alts)
+freeVars' vs (Lcl l) = if not $ L.elem (Lcl l) vs then [Lcl l] else []
+
+altFreeVars vs alt =
+  let nvs = L.map Lcl $ patArgs $ casePat alt in
+   freeVars' (nvs ++ vs) $ caseRHS alt
 
 existsTerm :: (Term -> Bool) -> Term -> Bool
 existsTerm f t@(g :@: ts) =

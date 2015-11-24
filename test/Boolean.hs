@@ -3,7 +3,12 @@ module Boolean(boolDT,
                beq,
                trueTerm,
                falseTerm,
-               boolThms, boolNonThms) where
+               boolThms, boolNonThms,
+               trueIsTrue,
+               bEqTrue,
+               trueFuncIsTrue,
+               beqFalseFalse,
+               beqBBTrue) where
 
 import Core
 import Proof

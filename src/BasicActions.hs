@@ -1,4 +1,8 @@
-module BasicActions(basicActions) where
+module BasicActions(basicActions,
+                    inductionAction,
+                    eqAction,
+                    unfoldAction,
+                    selectMatchAction) where
 
 import Data.List as L
 

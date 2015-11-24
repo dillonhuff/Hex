@@ -1,4 +1,5 @@
-module Search(tryToProve) where
+module Search(tryToProve,
+              dfs) where
 
 import Data.List as L
 import Data.Maybe
