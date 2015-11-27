@@ -42,7 +42,7 @@ symmetryAction =
 assumeEq c =
   let t0 = fst $ conjAssert c
       t1 = snd $ conjAssert c in
-   case t0 == t1 || (L.filter (\(a0, a1) -> (t0 == a0 && t1 == a1)) $ conjAssumptions c) /= [] of
+   case t0 == t1 of -- || (L.filter (\(a0, a1) -> (t0 == a0 && t1 == a1)) $ conjAssumptions c) /= [] of
     True -> Just ([], \_ -> eqProof c)
     False -> Nothing
 
