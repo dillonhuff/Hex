@@ -5,7 +5,7 @@ module Nat(natDT,
            nateq, natplus,
            natThms,
            natplusComm, natplusCommBase, natplusZbcTrue,
-           sasbTrue) where
+           sasbTrue, natplusCommInd) where
 
 import Boolean
 import Core

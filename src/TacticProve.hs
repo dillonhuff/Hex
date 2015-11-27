@@ -1,13 +1,17 @@
 module TacticProve(tacticProve,
                    evaluate) where
 
+import Data.List as L
+import Data.Maybe
+
 import Action
 import BasicActions
 import Core
 import Proof
 import Search
+import Utils
 
-maxDepth = 8
+maxDepth = 10
 
 tacticProve :: Conjecture -> Maybe Proof
 tacticProve c = dfs tactics c maxDepth
@@ -24,7 +28,8 @@ repAc a c =
      ([], pf2) <- repAc a sg
      return $ ([], \[] -> pf [pf2 []])
 
-tactics = [eqAction,
+tactics = [mpSplitAction,
+           eqAction,
            evaluate,
            selectMatchAction,
            unfoldAction,
@@ -33,8 +38,62 @@ tactics = [eqAction,
            symmetryAction,
            inductionAction]
 
+
 evaluate =
   repeatAc $ applyIf noFreeVarsInAssert $ applyFirst [eqAction, selectMatchAction, unfoldAction]
 
 noFreeVarsInAssert c =
   noFreeVars (fst $ conjAssert c) && noFreeVars (snd $ conjAssert c)
+
+mpSplitAction =
+  action mpSplit
+
+mpSplit c =
+   case rewrittenSplits c of
+    [] -> Nothing
+    newAssumptions ->
+      let newAssume = L.head newAssumptions
+          nh = c { conjAssumptions = (conjAssumptions c) ++ newAssume }
+          subgoals = error $ pretty 0 $ nh : (L.map (\na -> c { conjAssert = na}) newAssume) in
+      Just (subgoals, \pfs -> modusPonensProof c pfs)
+
+rewrittenSplits :: Conjecture -> [[(Term, Term)]]
+rewrittenSplits c =
+  let as = conjAssumptions c
+      a = conjAssert c in
+   catMaybes $ L.map (findRewritesTo a) as
+
+-- NOTE: findRewrites to should actually be something like
+-- "find a rewrite of 'from' such that 'to' is a subterm of
+-- the rewrite
+findRewritesTo :: (Term, Term) -> (Term, Term) -> Maybe [(Term, Term)]
+findRewritesTo from to = do
+  lr <- findRewrite (fst from) (fst to)
+  rr <- findRewrite (snd from) (snd to)
+--  error $ pretty 0 (fst from) ++ "\t" ++ pretty 0 lr ++ "\n" ++ pretty 0 rr
+  return [(fst from, lr), (snd from, rr)]
+
+findRewrite :: Term -> Term -> Maybe Term
+findRewrite from to =
+  case isAp from && isAp to && callHead from == callHead to of
+   True -> liftGlobal from to
+   False -> Nothing
+
+liftGlobal f t =
+  let fArgs = callArgs f
+      tArgs = callArgs t in
+   case oneUnaryCall fArgs of
+    True -> Just $ liftUnaryCall f
+    False -> Nothing
+
+oneUnaryCall args =
+  (L.length $ L.filter (\t -> isUnaryCall t) args) == 1
+    
+isUnaryCall t = isAp t && (L.length $ callArgs t) == 1
+
+liftUnaryCall f =
+  let fH = callHead f
+      fA = callArgs f
+      newArgs = L.map (\t -> if isUnaryCall t then L.head $ callArgs t else t) fA
+      newHead = callHead $ L.head $ L.filter (\t -> isUnaryCall t) fA in
+   ap newHead [ap fH newArgs]

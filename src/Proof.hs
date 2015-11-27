@@ -1,6 +1,7 @@
 module Proof(Proof,
              trueProof, eqProof, substituteProof, unfoldProof,
              selectProof, splitVarProof, inductionProof, symmetryProof,
+             modusPonensProof,
              Conjecture) where
 
 import Data.List as L
@@ -17,6 +18,7 @@ data Proof
   | SplitVarProof Conjecture [Proof]
   | InductionProof Conjecture [Proof]
   | SymmetryProof Conjecture Proof
+  | ModusPonensProof Conjecture [Proof]
     deriving (Eq, Ord, Show)
 
 instance Pretty Proof where
@@ -38,3 +40,4 @@ selectProof = SelectProof
 splitVarProof = SplitVarProof
 inductionProof = InductionProof
 symmetryProof = SymmetryProof
+modusPonensProof = ModusPonensProof

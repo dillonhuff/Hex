@@ -5,10 +5,12 @@ module Core(Conjecture,
             function, trueTermC,
             funcBody, funcName, funcArgs,
             genSub, sameFunc, replaceFunc,
+            Term,
             lcl, ap, match,
             callHead, callArgs,
             existsTerm, isDataConMatch, selectMatch,
             lclType, lclName, isLcl, isFuncall, getLocal, collectFromTerms,
+            isAp,
             noFreeVars, freeVars,
             alt,
             conPat,
@@ -114,6 +116,9 @@ match = Match
 
 isLcl (Lcl _) = True
 isLcl _ = False
+
+isAp (g :@: _) = True
+isAp _ = False
 
 isFuncall c (g :@: _) = L.elem (gblName g) $ L.map funcName $ conjFunctions c
 isFuncall _ _ = False
