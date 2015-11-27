@@ -16,6 +16,10 @@ maxDepth = 8
 tacticProve :: Conjecture -> Maybe Proof
 tacticProve c = dfs tactics c maxDepth
 
+{-  case (acApplies $ dfsAction tactics maxDepth) c of
+   Just ([], pf) -> Just $ pf []
+   _ -> Nothing-}
+
 repeatAc :: Action -> Action
 repeatAc a =
   action $ (\c -> repAc (acApplies a) c)
