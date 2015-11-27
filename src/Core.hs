@@ -24,7 +24,9 @@ module Core(Conjecture,
             dId,
             idName,
             local, dLcl,
-            global, dGbl,
+            Global,
+            global, dGbl, gblType,
+            returnType,
             sameName) where
 
 import Data.List as L
@@ -222,6 +224,8 @@ tyCon = TyCon
 func = Func
 
 tyConName (TyCon n _) = n
+
+returnType (Func _ t) = t
 
 data Global =
   Global { gblName :: Id, gblType :: Type }

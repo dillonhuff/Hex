@@ -1,5 +1,6 @@
 module TestUtils(testFunction,
-                 testThm) where
+                 testThm,
+                 testCase) where
 
 import Test.HUnit
 

@@ -75,8 +75,8 @@ findRewritesTo :: (Term, Term) -> (Term, Term) -> Maybe [(Term, Term)]
 findRewritesTo from to = do
   lr <- findRewrite (fst from) (fst to)
   rr <- findRewrite (snd from) (snd to)
---  error $ pretty 0 (fst from) ++ "\t" ++ pretty 0 lr ++ "\n" ++ pretty 0 rr
-  return [(fst from, lr), (snd from, rr)]
+  error $ pretty 0 (fst from) ++ "\t" ++ pretty 0 lr ++ "\n" ++ pretty 0 rr
+--  return [(fst from, lr), (snd from, rr)]
 
 findRewrite :: Term -> Term -> Maybe Term
 findRewrite from to =
