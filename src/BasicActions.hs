@@ -37,8 +37,13 @@ splitLocalAction =
 inductionAction =
   action existsLcl
 symmetryAction =
-  applyIf (\c -> isLcl $ fst $ conjAssert c) $ action (\c -> Just $ ([swapConj c], \[p] -> symmetryProof c p))
-  
+  applyIf (\c -> irreducible c (fst $ conjAssert c)) $ action (\c -> Just $ ([swapConj c], \[p] -> symmetryProof c p))
+
+irreducible c t = isLcl t || isSaturatedConstructor c t
+
+isSaturatedConstructor c t =
+  isAp t && isConstructorCall c t && (L.and $ L.map isLcl $ callArgs t)
+
 assumeEq c =
   let t0 = fst $ conjAssert c
       t1 = snd $ conjAssert c in

@@ -9,7 +9,8 @@ module Core(Conjecture,
             lcl, ap, match,
             callHead, callArgs,
             existsTerm, isDataConMatch, selectMatch,
-            lclType, lclName, isLcl, isFuncall, getLocal, collectFromTerms,
+            lclType, lclName, isLcl, isFuncall, isConstructorCall,
+            getLocal, collectFromTerms,
             isAp,
             noFreeVars, freeVars,
             alt,
@@ -122,6 +123,8 @@ isAp _ = False
 
 isFuncall c (g :@: _) = L.elem (gblName g) $ L.map funcName $ conjFunctions c
 isFuncall _ _ = False
+
+isConstructorCall c t = not $ isFuncall c t
 
 getLocal (Lcl l) = l
 
