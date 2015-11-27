@@ -11,7 +11,7 @@ import Proof
 import Search
 import Utils
 
-maxDepth = 10
+maxDepth = 8
 
 tacticProve :: Conjecture -> Maybe Proof
 tacticProve c = dfs tactics c maxDepth
@@ -28,13 +28,14 @@ repAc a c =
      ([], pf2) <- repAc a sg
      return $ ([], \[] -> pf [pf2 []])
 
-tactics = [mpSplitAction,
-           eqAction,
+tactics = [eqAction,
            evaluate,
+           mpSplitAction,
            selectMatchAction,
            unfoldAction,
            splitLocalAction,
-           substAction,
+           substActionLHS,
+           substActionRHS,
            symmetryAction,
            inductionAction]
 
@@ -54,7 +55,7 @@ mpSplit c =
     newAssumptions ->
       let newAssume = L.head newAssumptions
           nh = c { conjAssumptions = (conjAssumptions c) ++ newAssume }
-          subgoals = error $ pretty 0 $ nh : (L.map (\na -> c { conjAssert = na}) newAssume) in
+          subgoals = nh : (L.map (\na -> c { conjAssert = na}) newAssume) in
       Just (subgoals, \pfs -> modusPonensProof c pfs)
 
 rewrittenSplits :: Conjecture -> [[(Term, Term)]]
@@ -65,7 +66,7 @@ rewrittenSplits c =
 
 -- NOTE: findRewrites to should actually be something like
 -- "find a rewrite of 'from' such that 'to' is a subterm of
--- the rewrite
+-- the rewrite"
 findRewritesTo :: (Term, Term) -> (Term, Term) -> Maybe [(Term, Term)]
 findRewritesTo from to = do
   lr <- findRewrite (fst from) (fst to)

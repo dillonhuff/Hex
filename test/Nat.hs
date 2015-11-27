@@ -5,7 +5,7 @@ module Nat(natDT,
            nateq, natplus,
            natThms,
            natplusComm, natplusCommBase, natplusZbcTrue,
-           sasbTrue, natplusCommInd) where
+           sasbTrue, natplusCommInd, natplusRewrite) where
 
 import Boolean
 import Core
@@ -51,7 +51,8 @@ natThms = [nateqNNTrue,
            natplusComm,
            natplusCommBase,
            natplusCommInd,
-           natplusZbcTrue]
+           natplusZbcTrue,
+           natplusRewrite]
 
 nateqNNTrue = conjecture [natDT] [nateq] [] (nateqNN, trueTerm)
 nateqSZSZTrue = conjecture [natDT] [nateq] [] (nateqSZSZ, trueTerm)
@@ -63,6 +64,12 @@ natplusComm = conjecture [natDT] [natplus] [] (ap natplusGbl [nv "a", nv "b"], a
 natplusCommBase = conjecture [natDT] [natplus] [] (natp z (nv "b"), natp (nv "b") z)
 natplusCommInd = conjecture [natDT] [natplus] [(natp (nv "$0") (nv "b"), natp (nv "b") (nv "$0"))] (natp (s (nv "$0")) (nv "b"), natp (nv "b") (s (nv "$0")))
 natplusZbcTrue = conjecture [natDT] [natplus] [(nv "b", nv "c")] (natp z (nv "b"), nv "c")
+natplusRewrite =
+  conjecture [natDT] [natplus] assumptions (natp (s $ nv "a") (nv "b"), natp (nv "b") (s $ nv "a"))
+  where
+    assumptions = [(natp (nv "a") (nv "b"), natp (nv "b") (nv "a")),
+                   (natp (s $ nv "a") (nv "b"), s $ natp (nv "a") (nv "b")),
+                   (natp (nv "b") (s $ nv "a"), s $ natp (nv "b") (nv "a"))]
 
 nateqNN = ap (dGbl "nateq" (func [natType, natType] bt)) [lcl $ dLcl "n" natType, lcl $ dLcl "n" natType]
 nateqSZSZ = ap (dGbl "nateq" (func [natType, natType] bt)) [sz, sz]

@@ -31,6 +31,7 @@ instance Pretty Proof where
   pretty n (InductionProof c ps) = (indent n $ pretty n c) ++ (indent n "@@@ INDUCTION @@@") ++ (L.concatMap (pretty (n+1)) ps)
   pretty n (SymmetryProof c p) = (indent n $ pretty n c) ++ (indent n "@@@ SYMMETRY @@@") ++ (pretty n p)
   pretty n (SubstituteProof c p) = (indent n $ pretty n c) ++ (indent n "@@@ SUBSTITUTE @@@") ++ (pretty n p)
+  pretty n (ModusPonensProof c ps) = (indent n $ pretty n c) ++ (indent n "@@@ MODUS PONENS @@@") ++ (L.concatMap (pretty (n+1)) ps)
 
 trueProof = TrueProof
 eqProof = EqProof

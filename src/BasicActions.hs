@@ -3,7 +3,7 @@ module BasicActions(basicActions,
                     eqAction,
                     unfoldAction,
                     splitLocalAction,
-                    substAction,
+                    substActionLHS, substActionRHS,
                     selectMatchAction,
                     symmetryAction) where
 
@@ -15,14 +15,17 @@ import Proof
 
 basicActions = [inductionAction,
                 eqAction,
-                substAction,
+                substActionLHS,
+                substActionRHS,
                 selectMatchAction,
                 unfoldAction,
                 splitLocalAction,
                 symmetryAction]
 
-substAction =
-  action substTerm
+substActionLHS =
+  action substTermLHS
+substActionRHS =
+  action substTermRHS
 eqAction =
   action assumeEq
 unfoldAction =
@@ -43,25 +46,33 @@ assumeEq c =
     True -> Just ([], \_ -> eqProof c)
     False -> Nothing
 
-substTerm c =
-  case possibleSubstitutions c of
+substTermLHS c =
+  case possibleSubstitutionsLHS c of
    [] -> Nothing
    subs ->
-     let sub = L.head $ possibleSubstitutions c
+     let sub = L.head $ possibleSubstitutionsLHS c
          t1 = fst $ sub
          t2 = snd $ sub in
       Just ([c { conjAssert = (genSub (\t -> t == t1) (\t -> t2) $ fst $ conjAssert c, snd $ conjAssert c)}], \[s] -> substituteProof c s)
 
-possibleSubstitutions c =
+substTermRHS c =
+  case possibleSubstitutionsRHS c of
+   [] -> Nothing
+   subs ->
+     let sub = L.head $ possibleSubstitutionsRHS c
+         t1 = fst $ sub
+         t2 = snd $ sub in
+      Just ([c { conjAssert = (fst $ conjAssert c, genSub (\t -> t == t1) (\t -> t2) $ snd $ conjAssert c)}], \[s] -> substituteProof c s)
+
+possibleSubstitutionsLHS c =
   let as = conjAssumptions c
       lhs = fst $ conjAssert c in
    [(s1, s2) | (s1, s2) <- as, existsTerm (\t -> t == s1) lhs]
 
-substituteTerm c =
-  let sub = L.head $ possibleSubstitutions c
-      t1 = fst $ sub
-      t2 = snd $ sub in
-   [c { conjAssert = (genSub (\t -> t == t1) (\t -> t2) $ fst $ conjAssert c, snd $ conjAssert c)}]
+possibleSubstitutionsRHS c =
+  let as = conjAssumptions c
+      rhs = snd $ conjAssert c in
+   [(s1, s2) | (s1, s2) <- as, existsTerm (\t -> t == s1) rhs]
 
 existsLcl c =
   case collectLcls $ fst $ conjAssert c of
