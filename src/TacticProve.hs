@@ -1,5 +1,6 @@
 module TacticProve(tacticProve,
-                   evaluate) where
+                   evaluate,
+                   mpSplitAction) where
 
 import Data.List as L
 import Data.Maybe
@@ -7,6 +8,7 @@ import Data.Maybe
 import Action
 import BasicActions
 import Core
+import Lift
 import Proof
 import Search
 import Utils
@@ -73,32 +75,7 @@ rewrittenSplits c =
 -- the rewrite"
 findRewritesTo :: (Term, Term) -> (Term, Term) -> Maybe [(Term, Term)]
 findRewritesTo from to = do
-  lr <- findRewrite (fst from) (fst to)
-  rr <- findRewrite (snd from) (snd to)
-  error $ pretty 0 (fst from) ++ "\t" ++ pretty 0 lr ++ "\n" ++ pretty 0 rr
---  return [(fst from, lr), (snd from, rr)]
-
-findRewrite :: Term -> Term -> Maybe Term
-findRewrite from to =
-  case isAp from && isAp to && callHead from == callHead to of
-   True -> liftGlobal from to
-   False -> Nothing
-
-liftGlobal f t =
-  let fArgs = callArgs f
-      tArgs = callArgs t in
-   case oneUnaryCall fArgs of
-    True -> Just $ liftUnaryCall f
-    False -> Nothing
-
-oneUnaryCall args =
-  (L.length $ L.filter (\t -> isUnaryCall t) args) == 1
-    
-isUnaryCall t = isAp t && (L.length $ callArgs t) == 1
-
-liftUnaryCall f =
-  let fH = callHead f
-      fA = callArgs f
-      newArgs = L.map (\t -> if isUnaryCall t then L.head $ callArgs t else t) fA
-      newHead = callHead $ L.head $ L.filter (\t -> isUnaryCall t) fA in
-   ap newHead [ap fH newArgs]
+  lr <- liftTerm (fst to) (fst from)
+  rr <- liftTerm (snd to) (snd from)
+--  error $ pretty 0 (fst from) ++ "\t" ++ pretty 0 lr ++ "\n" ++ pretty 0 rr
+  return [(fst from, lr), (snd from, rr)]

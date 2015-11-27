@@ -30,7 +30,7 @@ liftTerm' target toLift =
              L.length (callArgs toLift) == 1 &&
              (L.head $ callArgs toLift) == target of
          True -> Just (Just $ callHead toLift, L.head $ callArgs toLift)
-         False -> error "NOOOO"
+         False -> Nothing --error $ pretty 0 toLift
 
 mergeArgs t l =
   let argRes = L.zipWith liftTerm' (callArgs t) (callArgs l)
