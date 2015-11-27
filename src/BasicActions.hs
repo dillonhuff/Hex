@@ -2,7 +2,10 @@ module BasicActions(basicActions,
                     inductionAction,
                     eqAction,
                     unfoldAction,
-                    selectMatchAction) where
+                    splitLocalAction,
+                    substAction,
+                    selectMatchAction,
+                    symmetryAction) where
 
 import Data.List as L
 
@@ -15,7 +18,8 @@ basicActions = [inductionAction,
                 substAction,
                 selectMatchAction,
                 unfoldAction,
-                splitLocalAction]
+                splitLocalAction,
+                symmetryAction]
 
 substAction =
   action substTerm
@@ -29,7 +33,9 @@ splitLocalAction =
   action existsLclSplit
 inductionAction =
   action existsLcl
-
+symmetryAction =
+  applyIf (\c -> isLcl $ fst $ conjAssert c) $ action (\c -> Just $ ([swapConj c], \[p] -> symmetryProof c p))
+  
 assumeEq c =
   let t0 = fst $ conjAssert c
       t1 = snd $ conjAssert c in
@@ -146,5 +152,3 @@ replaceFuncWithBody f =
 firstNoArgFunc [] = Nothing
 firstNoArgFunc (f:fs) =
   if funcArgs f == [] then Just f else firstNoArgFunc fs
-
-

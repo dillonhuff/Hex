@@ -9,7 +9,6 @@ module Boolean(boolDT,
                trueFuncIsTrue,
                beqFalseFalse,
                beqBBTrue) where
-
 import Core
 import Proof
 import Utils

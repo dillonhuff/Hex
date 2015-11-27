@@ -1,6 +1,7 @@
 module TacticProveTests(allTacticProveTests) where
 
 import Data.List as L
+import Data.Maybe
 import Test.HUnit
 
 import Action
@@ -26,3 +27,5 @@ evalThms =
   [trueIsTrue,
    trueFuncIsTrue,
    beqFalseFalse]
+
+pProof thm = putStrLn $ pretty 0 $ fromJust $ tacticProve thm

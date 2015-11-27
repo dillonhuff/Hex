@@ -7,7 +7,7 @@ import Core
 import Proof
 import Search
 
-maxDepth = 3
+maxDepth = 8
 
 tacticProve :: Conjecture -> Maybe Proof
 tacticProve c = dfs tactics c maxDepth
@@ -24,7 +24,14 @@ repAc a c =
      ([], pf2) <- repAc a sg
      return $ ([], \[] -> pf [pf2 []])
 
-tactics = [evaluate]
+tactics = [eqAction,
+           evaluate,
+           selectMatchAction,
+           unfoldAction,
+           splitLocalAction,
+           substAction,
+           symmetryAction,
+           inductionAction]
 
 evaluate =
   repeatAc $ applyIf noFreeVarsInAssert $ applyFirst [eqAction, selectMatchAction, unfoldAction]

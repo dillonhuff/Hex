@@ -1,6 +1,6 @@
 module Core(Conjecture,
             conjecture,
-            eqTerm,
+            eqTerm, swapConj,
             conjDataTypes, conjFunctions, conjAssumptions, conjAssert,
             function, trueTermC,
             funcBody, funcName, funcArgs,
@@ -39,7 +39,7 @@ data Conjecture =
 instance Pretty Conjecture where
   pretty n c = (indent n $ pretty n (conjDataTypes c)) ++ "\n" ++
                (indent n $ pretty n (conjFunctions c)) ++ "\n" ++
-               (L.concatMap (\(t1, t2) -> indent n $ pretty n t1 ++ " = " ++ pretty n t2) $ conjAssumptions c) ++
+               (L.concatMap (\(t1, t2) -> indent n $ ps $ spaces ["=", pretty n t1, pretty n t2]) $ conjAssumptions c) ++
                (indent n $ ps $ spaces ["=", pretty n (fst $ conjAssert c), pretty n (snd $ conjAssert c)])
 
 conjecture = Conjecture
@@ -48,6 +48,10 @@ eqTerm c =
   case fst $ conjAssert c of
    gbl :@: [] -> sameName gbl trueGbl
    _ -> False
+
+swapConj c = c { conjAssert = swap $ conjAssert c }
+
+swap (l, r) = (r, l)
 
 trueTermC = ap trueGbl []
 trueGbl = global trueId (func [] boolType)
