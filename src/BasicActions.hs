@@ -119,7 +119,7 @@ freshConstructorCall t con =
 
 freshVars t args =
   let n = nextTempIndex t in
-   L.zipWith (\t i -> lcl $ dLcl (tempVarName i) t) args [n..((L.length args) - 1)]
+   L.zipWith (\t i -> lcl $ dLcl (tempVarName i) t) args [n..(n + (L.length args) - 1)]
 
 nextTempIndex t =
   let tmps = collectFromTerms (\t -> if isTemp t then [t] else []) t

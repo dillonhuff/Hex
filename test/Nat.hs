@@ -5,6 +5,7 @@ module Nat(natDT,
            nateq, natplus, s, z, natp,
            natThms,
            natplusComm, natplusCommBase, natplusZbcTrue,
+           nateqSZSZTrue,
            sasbTrue, natplusCommInd, natplusRewrite,
            natplusSLeft, natplusSRight, npZSBEqSnpAB) where
 

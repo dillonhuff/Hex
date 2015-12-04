@@ -18,10 +18,6 @@ maxDepth = 8
 tacticProve :: Conjecture -> Maybe Proof
 tacticProve c = dfs tactics c maxDepth
 
-{-  case (acApplies $ dfsAction tactics maxDepth) c of
-   Just ([], pf) -> Just $ pf []
-   _ -> Nothing-}
-
 repeatAc :: Action -> Action
 repeatAc a =
   action $ (\c -> repAc (acApplies a) c)
@@ -36,15 +32,14 @@ repAc a c =
 
 tactics = [eqAction,
            evaluate,
-           mpSplitAction,
            selectMatchAction,
            unfoldAction,
+           mpSplitAction,
            splitLocalAction,
            substActionLHS,
            substActionRHS,
            symmetryAction,
            inductionAction]
-
 
 evaluate =
   repeatAc $ applyIf noFreeVarsInAssert $ applyFirst [eqAction, selectMatchAction, unfoldAction]
@@ -79,3 +74,5 @@ findRewritesTo from to = do
   rr <- liftTerm (snd to) (snd from)
 --  error $ pretty 0 (fst from) ++ "\t" ++ pretty 0 lr ++ "\n" ++ pretty 0 rr
   return [(fst from, lr), (snd from, rr)]
+
+unfoldSelectAction = applySequence [unfoldAction, selectMatchAction]

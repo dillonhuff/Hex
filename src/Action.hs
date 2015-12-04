@@ -1,7 +1,8 @@
 module Action(Action,
               action,
               acApplies,
-              repeatAction, applyIf, applyFirst) where
+              repeatAction, applyIf, applyFirst,
+              applySequence) where
 
 import Data.List as L
 import Data.Maybe
@@ -20,6 +21,20 @@ action = Action
 applyIf :: (Conjecture -> Bool) -> Action -> Action
 applyIf test a =
   action (\c -> if test c then (acApplies a) c else Nothing)
+
+applySequence :: [Action] -> Action
+applySequence acts =
+  action (\c -> apSeq (L.map acApplies acts) c)
+
+apSeq [] c = Nothing
+apSeq [a] c = a c
+apSeq (a:as) c =
+  case a c of
+   Just ([], pf) -> Just ([], pf)
+   Just ([sg], pf) -> do
+     ([sg2], pf2) <- apSeq as sg
+     return ([sg2], pf2)
+   Nothing -> Nothing
 
 repeatAction :: Int -> Action -> Action
 repeatAction n a =
