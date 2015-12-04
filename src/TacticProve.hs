@@ -13,7 +13,7 @@ import Proof
 import Search
 import Utils
 
-maxDepth = 8
+maxDepth = 9
 
 tacticProve :: Conjecture -> Maybe Proof
 tacticProve c = dfs tactics c maxDepth
