@@ -113,9 +113,24 @@ instance Pretty Term where
   pretty n (Lcl l) = pretty 0 l
   pretty n (g :@: terms) = ps $ pretty 0 g ++ " " ++ (spaces $ L.map (pretty 0) terms)
   pretty n (Match e alts) = indent n $ ps $ "match " ++ pretty 0 e ++ (L.concatMap (pretty (n+1)) alts)
-  
+
+termType (Lcl l) = lclType l
+termType (g :@: _) = returnType $ gblType g
+termType (Match t alts) = termType $ caseRHS $ L.head alts
+
 lcl = Lcl
-ap g args = g :@: args
+
+ap g as =
+  case typesMatch (argTypes $ gblType g) (L.map termType as) of
+   True -> g :@: as
+   False -> error $ "ap with bad types\n" ++ pretty 0 g ++ "\n" ++ pretty 0 as
+
+typesMatch [] [] = True
+typesMatch a [] = False
+typesMatch [] b = False
+typesMatch [a] [b] = a == b
+typesMatch (a:as) (b:bs) = a == b && typesMatch as bs
+
 match = Match
 
 isLcl (Lcl _) = True
@@ -239,6 +254,8 @@ isFuncType _ = False
 arity (Func args _) = L.length args
 
 argType n (Func args _) = args !! n
+
+argTypes (Func args _) = args
 
 data Global =
   Global { gblName :: Id, gblType :: Type }
