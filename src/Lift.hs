@@ -9,11 +9,14 @@ import Utils
 liftTerm :: Term -> Term -> Maybe Term
 liftTerm target toLift =
   case liftUnary target toLift of
-   Just (gs, t) -> Just $ apList gs t
+   Just (gs, t) -> apList gs t
    Nothing -> Nothing
 
-apList [] t = t
-apList (g:gs) t = apList gs $ ap g [t]
+apList [] t = Just t
+apList (g:gs) t =
+  case typesMatch (argTypes $ gblType g) [termType t] of
+   True -> apList gs (ap g [t])
+   False -> Nothing
 
 liftUnary :: Term -> Term -> Maybe ([Global], Term)
 liftUnary t l =
