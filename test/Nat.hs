@@ -5,7 +5,7 @@ module Nat(natDT,
            nateq, natplus, s, z, natp,
            natThms,
            natplusComm, natplusCommBase, natplusZbcTrue,
-           nateqSZSZTrue,
+           nateqSZSZTrue, natplusAssocBaseRRev,
            sasbTrue, natplusCommInd, natplusRewrite,
            natplusSLeft, natplusSRight, npZSBEqSnpAB) where
 
@@ -58,6 +58,12 @@ natThms = [nateqNNTrue,
            natplusSLeft,
            natplusSRight,
            npZSBEqSnpAB,
+           natplusAssocBase,
+           natplusAssocBaseL,
+           natplusAssocBaseR,
+           natplusAssocBaseRRev,
+           natplusAssocI1,
+           natplusAssocI2,
            natplusAssoc]
 
 nateqNNTrue = conjecture [natDT] [nateq] [] (nateqNN, trueTerm)
@@ -80,6 +86,12 @@ natplusSLeft = conjecture [natDT] [natplus] [] (natp (s $ nv "a") (nv "b"), s $ 
 natplusSRight = conjecture [natDT] [natplus] [] (natp (nv "a") (s $ nv "b"), s $ natp (nv "a") (nv "b"))
 npZSBEqSnpAB = conjecture [natDT] [natplus] [] (natp z (s $ nv "b"), s $ natp z (nv "b"))
 natplusAssoc = conjecture [natDT] [natplus] [] (natp (nv "a") (natp (nv "b") (nv "c")), natp (natp (nv "a") (nv "b")) (nv "c"))
+natplusAssocBase = conjecture [natDT] [natplus] [] (natp z (natp (nv "b") (nv "c")), natp (natp z (nv "b")) (nv "c"))
+natplusAssocI1 = conjecture [natDT] [natplus] [] (natp (s $ nv "a") (natp (nv "b") (nv "c")), s $ natp (nv "a") (natp (nv "b") (nv "c")))
+natplusAssocI2 = conjecture [natDT] [natplus] [] (natp (natp (s $ nv "a") (nv "b")) (nv "c"), s $ natp (natp (nv "a") (nv "b")) (nv "c"))
+natplusAssocBaseL = conjecture [natDT] [natplus] [] (natp z (natp (nv "b") (nv "c")), natp (nv "b") (nv "c"))
+natplusAssocBaseR = conjecture [natDT] [natplus] [] (natp (nv "b") (nv "c"), natp (natp z (nv "b")) (nv "c"))
+natplusAssocBaseRRev = conjecture [natDT] [natplus] [] (natp (natp z (nv "b")) (nv "c"), natp (nv "b") (nv "c"))
 
 nateqNN = ap (dGbl "nateq" (func [natType, natType] bt)) [lcl $ dLcl "n" natType, lcl $ dLcl "n" natType]
 nateqSZSZ = ap (dGbl "nateq" (func [natType, natType] bt)) [sz, sz]

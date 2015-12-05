@@ -1,7 +1,7 @@
 module BasicActions(basicActions,
                     inductionAction,
                     eqAction,
-                    unfoldAction, unfoldArgMatchedCallAction,
+                    unfoldArgMatchedCallAction,
                     splitLocalAction,
                     substActionLHS, substActionRHS,
                     selectMatchAction,
@@ -19,7 +19,6 @@ basicActions = [inductionAction,
                 substActionLHS,
                 substActionRHS,
                 selectMatchAction,
-                unfoldAction,
                 splitLocalAction,
                 symmetryAction]
 
@@ -29,8 +28,6 @@ substActionRHS =
   action substTermRHS
 eqAction =
   action assumeEq
-unfoldAction =
-  action existsFunc
 unfoldArgMatchedCallAction =
   action existsMatchedCallFunc
 selectMatchAction =
@@ -42,7 +39,10 @@ inductionAction =
 symmetryAction =
   applyIf (\c -> irreducible c (fst $ conjAssert c)) $ action (\c -> Just $ ([swapConj c], \[p] -> symmetryProof c p))
 
-irreducible c t = isLcl t || isSaturatedConstructor c t
+irreducible c t = isLcl t || isSaturated t
+
+isSaturated t =
+  isAp t && (L.and $ L.map isLcl $ callArgs t)
 
 isSaturatedConstructor c t =
   isAp t && isConstructorCall c t && (L.and $ L.map isLcl $ callArgs t)
@@ -153,8 +153,12 @@ existsMatchedCallFunc c =
    case collectFromTerms (\t -> if isMatchedCall t c then [t] else []) a of
     (t:_) ->
       let f = getCalledFunc t c in
-       Just (subFunc f c, simpleUnfoldProof c)
-    _ -> Nothing
+       Just (subFuncL t c, simpleUnfoldProof c)
+    _ -> case collectFromTerms (\t -> if isMatchedCall t c then [t] else []) $ snd $ conjAssert c of
+      (t:_) ->
+        let f = getCalledFunc t c in
+         Just (subFuncR t c, simpleUnfoldProof c)
+      _ -> Nothing
 
 getCalledFunc t c =
   let name = gblName $ callHead t in
@@ -167,31 +171,24 @@ isMatchedCall t c =
          params = callArgs t
          argVars = funcArgs $ getCalledFunc t c
          matchedTerms = collectFromTerms (\e -> if isMatch e then [matchedTerm e] else []) body in
-      L.or $ L.zipWith (\v e -> isDataCon c e && L.elem (lcl v) matchedTerms) argVars params
+      (L.or $ L.zipWith (\v e -> isDataCon c e && L.elem (lcl v) matchedTerms) argVars params) || (argVars == [])
    False -> False
 
-subFunc f c =
-  [c { conjAssert = (replaceFuncWithBody f $ fst $ conjAssert c, snd $ conjAssert c)}]
+subFuncL t c =
+  [c { conjAssert = (replaceFuncWithBody c t $ fst $ conjAssert c, snd $ conjAssert c)}]
 
-existsFunc c =
-  case existsTerm (isFuncall c) $ fst $ conjAssert c of
-   True -> Just (substituteFunc c, simpleUnfoldProof c)
-   False -> Nothing
-
-substituteFunc c =
-  case conjFunctions c of
-   (f:fs) ->
-      [c { conjAssert = (replaceFuncWithBody f $ fst $ conjAssert c, snd $ conjAssert c)}]
-   _ -> [c]
+subFuncR t c =
+  [c { conjAssert = (fst $ conjAssert c, replaceFuncWithBody c t $ snd $ conjAssert c) }]
 
 simpleUnfoldProof c [subProof] = unfoldProof c subProof
 simpleSelectProof c [subProof] = selectProof c subProof
 
-replaceFuncWithBody f =
-  let fName = funcName f
+replaceFuncWithBody c t =
+  let f = getCalledFunc t c
+      fName = funcName f
       fBody = funcBody f
       fArgs = funcArgs f in
-   genSub (sameFunc fName) (replaceFunc fBody fArgs)
+   genSub (\e -> e == t) (replaceFunc fBody fArgs)
 
 firstNoArgFunc [] = Nothing
 firstNoArgFunc (f:fs) =

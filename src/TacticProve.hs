@@ -41,7 +41,7 @@ tactics = [eqAction,
            inductionAction]
 
 evaluate =
-  repeatAc $ applyIf noFreeVarsInAssert $ applyFirst [eqAction, selectMatchAction, unfoldAction]
+  repeatAc $ applyIf noFreeVarsInAssert $ applyFirst [eqAction, selectMatchAction, unfoldArgMatchedCallAction]
 
 noFreeVarsInAssert c =
   noFreeVars (fst $ conjAssert c) && noFreeVars (snd $ conjAssert c)
@@ -74,4 +74,4 @@ findRewritesTo from to = do
 --  error $ pretty 0 (fst from) ++ "\t" ++ pretty 0 lr ++ "\n" ++ pretty 0 rr
   return [(fst from, lr), (snd from, rr)]
 
-unfoldSelectAction = applySequence [unfoldAction, selectMatchAction]
+unfoldSelectAction = applySequence [unfoldArgMatchedCallAction, selectMatchAction]
