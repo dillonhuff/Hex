@@ -34,11 +34,11 @@ tactics = [eqAction,
            evaluate,
            selectMatchAction,
            unfoldAction,
-           mpSplitAction,
            splitLocalAction,
            substActionLHS,
            substActionRHS,
            symmetryAction,
+           mpSplitAction,
            inductionAction]
 
 evaluate =
