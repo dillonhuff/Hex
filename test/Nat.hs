@@ -57,7 +57,8 @@ natThms = [nateqNNTrue,
            natplusRewrite,
            natplusSLeft,
            natplusSRight,
-           npZSBEqSnpAB]
+           npZSBEqSnpAB,
+           natplusAssoc]
 
 nateqNNTrue = conjecture [natDT] [nateq] [] (nateqNN, trueTerm)
 nateqSZSZTrue = conjecture [natDT] [nateq] [] (nateqSZSZ, trueTerm)
@@ -78,6 +79,7 @@ natplusRewrite =
 natplusSLeft = conjecture [natDT] [natplus] [] (natp (s $ nv "a") (nv "b"), s $ natp (nv "a") (nv "b"))
 natplusSRight = conjecture [natDT] [natplus] [] (natp (nv "a") (s $ nv "b"), s $ natp (nv "a") (nv "b"))
 npZSBEqSnpAB = conjecture [natDT] [natplus] [] (natp z (s $ nv "b"), s $ natp z (nv "b"))
+natplusAssoc = conjecture [natDT] [natplus] [] (natp (nv "a") (natp (nv "b") (nv "c")), natp (natp (nv "a") (nv "b")) (nv "c"))
 
 nateqNN = ap (dGbl "nateq" (func [natType, natType] bt)) [lcl $ dLcl "n" natType, lcl $ dLcl "n" natType]
 nateqSZSZ = ap (dGbl "nateq" (func [natType, natType] bt)) [sz, sz]
