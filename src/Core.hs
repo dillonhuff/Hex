@@ -125,6 +125,7 @@ isAp (g :@: _) = True
 isAp _ = False
 
 isMatch (Match _ _) = True
+isMatch _ = False
 
 isFuncall c (g :@: _) = L.elem (gblName g) $ L.map funcName $ conjFunctions c
 isFuncall _ _ = False

@@ -167,7 +167,7 @@ isMatchedCall t c =
          params = callArgs t
          argVars = funcArgs $ getCalledFunc t c
          matchedTerms = collectFromTerms (\e -> if isMatch e then [matchedTerm e] else []) body in
-      L.or $ L.zipWith (\v e -> isDataCon c e {-&& L.elem (lcl v) matchedTerms-}) argVars params
+      L.or $ L.zipWith (\v e -> isDataCon c e && L.elem (lcl v) matchedTerms) argVars params
    False -> False
 
 subFunc f c =
