@@ -33,11 +33,10 @@ repAc a c =
 tactics = [eqAction,
            evaluate,
            selectMatchAction,
+           symmetryAction,
            unfoldAction,
-           splitLocalAction,
            substActionLHS,
            substActionRHS,
-           symmetryAction,
            mpSplitAction,
            inductionAction]
 
