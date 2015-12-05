@@ -1,7 +1,7 @@
 module BasicActions(basicActions,
                     inductionAction,
                     eqAction,
-                    unfoldAction,
+                    unfoldAction, unfoldArgMatchedCallAction,
                     splitLocalAction,
                     substActionLHS, substActionRHS,
                     selectMatchAction,
@@ -12,6 +12,7 @@ import Data.List as L
 import Action
 import Core
 import Proof
+import Utils
 
 basicActions = [inductionAction,
                 eqAction,
@@ -30,6 +31,8 @@ eqAction =
   action assumeEq
 unfoldAction =
   action existsFunc
+unfoldArgMatchedCallAction =
+  action existsMatchedCallFunc
 selectMatchAction =
   action existsDataConMatch
 splitLocalAction =
@@ -144,6 +147,31 @@ existsDataConMatch c =
 
 substituteDataConMatches c =
   [c {conjAssert = (genSub (isDataConMatch c) selectMatch $ fst $ conjAssert c, snd $ conjAssert c)}]
+
+existsMatchedCallFunc c =
+  let a = fst $ conjAssert c in
+   case collectFromTerms (\t -> if isMatchedCall t c then [t] else []) a of
+    (t:_) ->
+      let f = getCalledFunc t c in
+       Just (subFunc f c, simpleUnfoldProof c)
+    _ -> Nothing
+
+getCalledFunc t c =
+  let name = gblName $ callHead t in
+   L.head $ L.filter (\f -> funcName f == name) $ conjFunctions c
+
+isMatchedCall t c =
+  case isFuncall c t of
+   True ->
+     let body = funcBody $ getCalledFunc t c
+         params = callArgs t
+         argVars = funcArgs $ getCalledFunc t c
+         matchedTerms = collectFromTerms (\e -> if isMatch e then [matchedTerm e] else []) body in
+      L.or $ L.zipWith (\v e -> isDataCon c e {-&& L.elem (lcl v) matchedTerms-}) argVars params
+   False -> False
+
+subFunc f c =
+  [c { conjAssert = (replaceFuncWithBody f $ fst $ conjAssert c, snd $ conjAssert c)}]
 
 existsFunc c =
   case existsTerm (isFuncall c) $ fst $ conjAssert c of

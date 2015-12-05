@@ -8,9 +8,10 @@ module Core(Conjecture,
             Term,
             lcl, ap, match,
             callHead, callArgs,
-            existsTerm, isDataConMatch, selectMatch,
+            existsTerm, isDataConMatch, isDataCon, selectMatch,
             lclType, lclName, isLcl, isFuncall, isConstructorCall,
-            getLocal, collectFromTerms,
+            isMatch,
+            getLocal, collectFromTerms, matchedTerm,
             isAp,
             noFreeVars, freeVars,
             alt,
@@ -25,7 +26,7 @@ module Core(Conjecture,
             idName,
             local, dLcl,
             Global,
-            global, dGbl, gblType,
+            global, dGbl, gblName, gblType,
             returnType,
             sameName) where
 
@@ -123,6 +124,8 @@ isLcl _ = False
 isAp (g :@: _) = True
 isAp _ = False
 
+isMatch (Match _ _) = True
+
 isFuncall c (g :@: _) = L.elem (gblName g) $ L.map funcName $ conjFunctions c
 isFuncall _ _ = False
 
@@ -132,6 +135,8 @@ getLocal (Lcl l) = l
 
 callHead (g :@: _) = g
 callArgs (_ :@: ts) = ts
+
+matchedTerm (Match t _) = t
 
 collectFromTerms :: (Term -> [a]) -> Term -> [a]
 collectFromTerms f t@(g :@: ts) = (f t) ++ L.concatMap (collectFromTerms f) ts
