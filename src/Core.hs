@@ -21,13 +21,13 @@ module Core(Conjecture,
             datatype,
             dtName, dtConstructors,
             tyCon, func,
+            isFuncType, returnType, argType, arity,
             tyConName,
             dId,
             idName,
             local, dLcl,
             Global,
             global, dGbl, gblName, gblType,
-            returnType,
             sameName) where
 
 import Data.List as L
@@ -232,6 +232,13 @@ func = Func
 tyConName (TyCon n _) = n
 
 returnType (Func _ t) = t
+
+isFuncType (Func _ _) = True
+isFuncType _ = False
+
+arity (Func args _) = L.length args
+
+argType n (Func args _) = args !! n
 
 data Global =
   Global { gblName :: Id, gblType :: Type }

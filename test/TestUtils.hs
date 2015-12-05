@@ -1,6 +1,6 @@
 module TestUtils(testFunction,
                  testThm,
-                 testCase) where
+                 testCase, testCasePP) where
 
 import Test.HUnit
 
@@ -11,8 +11,11 @@ testFunction func cases = runTestTT $ makeTestCases func cases
 makeTestCases func cases =
   TestList $ map (\(input, expected) -> testCase func input expected) cases
 
+testCasePP func input expected =
+  TestCase (assertEqual ("Input:\n" ++ (pretty 0 input) ++ "\nWanted\n" ++ (pretty 0 expected)) expected (func input))
+
 testCase func input expected =
-  TestCase (assertEqual ("Input: " ++ show input) expected (func input))
+  TestCase (assertEqual ("Input: " ++ (show input)) expected (func input))
 
 testThm p thm expected = TestCase $ tf p thm expected
 

@@ -14,6 +14,9 @@ instance Pretty a => Pretty (Maybe a) where
   pretty n Nothing = "Nothing"
   pretty n (Just a) = pretty n a
 
+instance (Pretty a, Pretty b) => Pretty (a, b) where
+  pretty n (x, y) = "(\n" ++ pretty n x ++ "\n" ++ pretty n y
+
 prettyEq :: Pretty a => Int -> (a, a) -> String
 prettyEq n (l, r) = (indent n "(=") ++ "\n" ++
                     (indent n $ pretty (n+1) l) ++ "\n" ++
