@@ -97,11 +97,13 @@ inductionSubgoal l c con =
       fvs = callArgs k
       recVars = L.filter (\v -> (lclType $ getLocal v) == (lclType $ getLocal l)) fvs
       oldAssert = fst $ conjAssert c
-      newAssert = genSub (\t -> t == l) (\t -> k) oldAssert
-      newAssertR = genSub (\t -> t == l) (\t -> k) $ snd $ conjAssert c
-      newAssumptions = L.map (\x -> (genSub (\t -> t == l) (\t -> x) oldAssert, genSub (\t -> t == l) (\t -> x) $ snd $ conjAssert c)) fvs in
-   c { conjAssumptions = newAssumptions ++ (conjAssumptions c),
-       conjAssert = (newAssert, newAssertR) }
+      subF = genSub (\t -> t == l) (\t -> k)
+      subT = \(a, b) -> (subF a, subF b)
+      newAssumptions = L.map (\x -> (genSub (\t -> t == l) (\t -> x) oldAssert, genSub (\t -> t == l) (\t -> x) $ snd $ conjAssert c)) fvs
+      newAssert = subT $ conjAssert c
+      subOldAssumptions = L.map subT $ conjAssumptions c in
+   c { conjAssumptions = newAssumptions ++ subOldAssumptions,
+       conjAssert = newAssert }
 
 existsLclSplit c =
   case collectLcls $ fst $ conjAssert c of

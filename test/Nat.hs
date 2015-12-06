@@ -8,7 +8,8 @@ module Nat(natDT,
            nateqSZSZTrue, natplusAssocBaseRRev, natplusAssoc,
            natplusAssocI,
            sasbTrue, natplusCommInd, natplusRewrite,
-           natplusSLeft, natplusSRight, npZSBEqSnpAB) where
+           natplusSLeft, natplusSRight, npZSBEqSnpAB,
+           nateqSym, nateqTrans) where
 
 import Boolean
 import Core
@@ -47,6 +48,8 @@ nt = natType
 -- Test theorems about natural numbers
 natThms = [nateqNNTrue,
            nateqZZTrue,
+           nateqTrans,
+           nateqSym,
            nateqSZSZTrue,
            natplusZNTrue,
            natplusNZTrue,
@@ -71,6 +74,8 @@ natThms = [nateqNNTrue,
 nateqNNTrue = conjecture [natDT] [nateq] [] (nateqNN, trueTerm)
 nateqSZSZTrue = conjecture [natDT] [nateq] [] (nateqSZSZ, trueTerm)
 nateqZZTrue = conjecture [natDT] [nateq] [] (nateqZZ, trueTerm)
+nateqSym = conjecture [natDT] [nateq] [(neq (nv "x") (nv "y"), t)] (neq (nv "y") (nv "x"), t)
+nateqTrans = conjecture [natDT] [nateq] [(neq (nv "x") (nv "y"), t), (neq (nv "y") (nv "z"), t)] (neq (nv "x") (nv "z"), t)
 natplusZNTrue = conjecture [natDT] [natplus] [] (natplusZN, nv "n")
 natplusNZTrue = conjecture [natDT] [natplus] [] (natplusNZ, nv "n")
 sasbTrue = conjecture [natDT] [] [(nv "a", nv "b")] (s $ nv "a", s $ nv "b")
@@ -106,3 +111,7 @@ natp l r = ap natplusGbl [l, r]
 sz = ap sGlobal [ap zeroGlobal []]
 s v = ap sGlobal [v]
 z = ap zeroGlobal []
+
+nateqGbl = dGbl "nateq" (func [natType, natType] bt)
+t = trueTerm
+neq l r = ap nateqGbl [l, r]
